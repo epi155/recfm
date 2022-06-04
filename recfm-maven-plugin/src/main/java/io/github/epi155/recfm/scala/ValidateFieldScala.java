@@ -33,13 +33,13 @@ public class ValidateFieldScala extends ValidateField {
             case None:
                 break;
             case Ascii:
-                pw.printf("%s checkAscii(\"FILLER\"%s, %5d, %4d, handler)", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
+                pw.printf("%s checkAscii(\"FILLER\"%s, %5d, %4d, handler)%n", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
                 break;
             case Latin1:
-                pw.printf("%s checkLatin(\"FILLER\"%s, %5d, %4d, handler)", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
+                pw.printf("%s checkLatin(\"FILLER\"%s, %5d, %4d, handler)%n", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
                 break;
             case Valid:
-                pw.printf("%s checkValid(\"FILLER\"%s, %5d, %4d, handler)", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
+                pw.printf("%s checkValid(\"FILLER\"%s, %5d, %4d, handler)%n", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
                 break;
         }
     }
@@ -47,7 +47,7 @@ public class ValidateFieldScala extends ValidateField {
     @Override
     protected void validateVal(FieldConstant fld, int w, int bias, boolean isFirst) {
         String prefix = prefixOf(isFirst);
-        pw.printf("%s checkEqual(\"VALUE\"%s, %5d, %4d, handler, %s.VALUE_AT%dPLUS%d)", prefix, fld.pad(5, w),
+        pw.printf("%s checkEqual(\"VALUE\"%s, %5d, %4d, handler, %s.VALUE_AT%dPLUS%d)%n", prefix, fld.pad(5, w),
             fld.getOffset() - bias, fld.getLength(), name, fld.getOffset(), fld.getLength());
     }
 
@@ -55,7 +55,7 @@ public class ValidateFieldScala extends ValidateField {
     protected void validateNum(FieldNum fld, int w, int bias, boolean isFirst) {
         if (fld.isRedefines()) return;
         String prefix = prefixOf(isFirst);
-        pw.printf("%s checkDigit(\"%s\"%s, %5d, %4d, handler)", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+        pw.printf("%s checkDigit(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
     }
 
     @Override
@@ -66,22 +66,22 @@ public class ValidateFieldScala extends ValidateField {
             case None:
                 break;
             case Ascii:
-                pw.printf("%s checkAscii(\"%s\"%s, %5d, %4d, handler)", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                pw.printf("%s checkAscii(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
                 break;
             case Latin1:
-                pw.printf("%s checkLatin(\"%s\"%s, %5d, %4d, handler)", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                pw.printf("%s checkLatin(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
                 break;
             case Valid:
-                pw.printf("%s checkValid(\"%s\"%s, %5d, %4d, handler)", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                pw.printf("%s checkValid(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
                 break;
         }
     }
 
     private String prefixOf(boolean isFirst) {
         if (isFirst) {
-            return "        var error =";
+            return "    var error =";
         } else {
-            return "        error |=";
+            return "    error |=";
         }
     }
 

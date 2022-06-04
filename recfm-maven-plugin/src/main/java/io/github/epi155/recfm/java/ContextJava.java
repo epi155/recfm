@@ -16,13 +16,17 @@ import java.nio.CharBuffer;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.OptionalInt;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class ContextJava extends LanguageContext implements IndentAble {
+    private static final String SYSTEM_PACKAGE = "io.github.epi155.recfm.java";
 
 
     public static String rpad(String s, int t, char pad) {
@@ -48,12 +52,7 @@ public class ContextJava extends LanguageContext implements IndentAble {
         log.info("- Prepare class {} ...", struct.getName());
         val classFile = new File(cwd + File.separator + struct.getName() + ".java");
 
-        // no shorthand -> full check !?
-        long voidFields = struct.getFields().stream().filter(Objects::isNull).count();
-        if (voidFields > 0) {
-            log.error("{} void field definitions", voidFields);
-            throw new ClassDefineException("Class <" + struct.getName() + "> bad defined");
-        }
+        checkForVoid(struct);
         val utilPackage = (ga.utilPackage == null) ? SYSTEM_PACKAGE : ga.utilPackage;
 
         boolean checkSuccesful = struct.noBadName();

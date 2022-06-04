@@ -4,16 +4,19 @@ import io.github.epi155.recfm.lang.AccessField;
 import io.github.epi155.recfm.lang.InitializeField;
 import io.github.epi155.recfm.lang.ValidateField;
 import io.github.epi155.recfm.type.ClassDefine;
+import io.github.epi155.recfm.type.ClassDefineException;
 import io.github.epi155.recfm.type.ClassesDefine;
 import io.github.epi155.recfm.type.Defaults;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.io.PrintWriter;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.IntFunction;
 
+@Slf4j
 public abstract class LanguageContext {
-    protected static final String SYSTEM_PACKAGE = "io.github.epi155.recfm";
     protected static final String VERSION = Optional.ofNullable(LanguageContext.class.getPackage().getImplementationVersion()).orElse("N/A");
 
     public static String getWrkName(String name) {
@@ -32,6 +35,15 @@ public abstract class LanguageContext {
         String cwd = Tools.makeDirectory(args.sourceDirectory, structs.getPackageName());
         structs.getClasses().
             forEach(it -> generateClass(it, cwd, structs.getPackageName(), args, structs.getDefaults()));
+    }
+
+    protected void checkForVoid(ClassDefine struct) {
+        // no shorthand -> full check !?
+        long voidFields = struct.getFields().stream().filter(Objects::isNull).count();
+        if (voidFields > 0) {
+            log.error("{} void field definitions", voidFields);
+            throw new ClassDefineException("Class <" + struct.getName() + "> bad defined");
+        }
     }
 
     protected abstract void generateClass(ClassDefine define, String cwd, String packageName, GenerateArgs ga, Defaults defaults);

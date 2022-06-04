@@ -119,7 +119,7 @@ Parameters
 
 `outputUtilPackage`
 : Indicates the name of the package under which to generate the utility classes, if omitted it is necessary to include
-in the dependencies the library linked to the plugin **recfm-java**
+in the dependencies the library linked to the plugin **recfm-lib-java**
 
 `outputSourceDirectory`
 : Indicates the base directory from which to generate packages, default value is `${project.build.sourceDirectory}`,
@@ -243,13 +243,13 @@ Generated setter and getter
 
 ~~~java
     public String getHuey(){...}
-public void setHuey(String s){...}
+    public void setHuey(String s){...}
 
-public String getDewey(){...}
-public void setDewey(String s){...}
+    public String getDewey(){...}
+    public void setDewey(String s){...}
 
-public String getLouie(){...}
-public void setLouie(String s){...}
+    public String getLouie(){...}
+    public void setLouie(String s){...}
 ~~~
 
 The <a name='fld.redef'>redefines</a> attribute indicates that the field is a redefinition of an area, this field will
@@ -298,7 +298,7 @@ Tag for numeric field is `Num`, many attributes have the same meaning as in the 
 is necessarily 0, the control is necessarily that the characters are numeric, the possible attributes are:
 
 |attribute  |alt|type   |note                            |
-|-----------|---|-------|--------------------------------|
+|-----------|---| :---: |--------------------------------|
 |[offset](#fld.offset)   |at | int   | **required**                   |
 |[length](#fld.length)   |len| int   | **required**                   |
 |[name](#fld.name)       |   |String | **required**                   |
@@ -332,9 +332,9 @@ Generated java for *year* field
 
 ~~~java
     public String getYear(){...}
-public void setYear(String s){...}
-public int intYear(){...}
-public void setYear(int n){...}
+    public void setYear(String s){...}
+    public int intYear(){...}
+    public void setYear(int n){...}
 ~~~
 
 <!--
@@ -356,7 +356,7 @@ Tag for filler field is `Fil`, a filler is an area we are not interested in, nei
 for it, the possible attributes are:
 
 |attribute  |alt|type   |note                            |
-|-----------|---|-------|--------------------------------|
+|-----------|---| :---: |--------------------------------|
 |[offset](#fld.offset)  |at | int   | **required**                   |
 |[length](#fld.length)  |len| int   | **required**                   |
 |[fillChar](#fld.fill)  |   |char   | default value `defaults.fillChar`|
@@ -370,7 +370,7 @@ Tag for constant field is `Val`, even for a constant field the setters and gette
 verify that the present value coincides with the set one, the possible attributes are:
 
 |attribute  |alt|type   |note                            |
-|-----------|---|-------|--------------------------------|
+|-----------|---| :---: |--------------------------------|
 |[offset](#fld.offset)  |at | int   | **required**                   |
 |[length](#fld.length)  |len| int   | **required**                   |
 |[value](#fld.val)      |val|String | **required**                   |
@@ -384,7 +384,7 @@ Tag for group field is `Grp`, a group allows you to group multiple fields in ord
 attributes are:
 
 |attribute  |alt|type   |note                            |
-|-----------|---|-------|--------------------------------|
+|-----------|---| :---: |--------------------------------|
 |[offset](#grp.offset)   |at | int   | **required**                   |
 |[length](#grp.length)   |len| int   | **required**                   |
 |[name](#grp.name)       |   |String | **required**                   |
@@ -418,9 +418,9 @@ Group usage example:
 
 ~~~java
         val b280=new B280v2xReq();
-    b280.transactionArea().setCdTransazione("TR00");
-    b280.transactionArea().setEsitoAgg("0");
-    val esitoComplTransaction=b280.transactionArea().getEsitoCompl();
+        b280.transactionArea().setCdTransazione("TR00");
+        b280.transactionArea().setEsitoAgg("0");
+        val esitoComplTransaction=b280.transactionArea().getEsitoCompl();
 ~~~
 
 #### <a name="436">4.3.6. Occurs </a>
@@ -429,7 +429,7 @@ Tag for occurs field is `Occ`, an occurs is basically a repeated group, it is de
 occurrence and the number of occurrences, the possible attributes are:
 
 |attribute  |alt|type   |note                            |
-|-----------|---|-------|--------------------------------|
+|-----------|---| :---: |--------------------------------|
 |[offset](#occ.offset)   |at | int   | **required**                   |
 |[length](#occ.length)   |len| int   | **required**                   |
 |[name](#occ.name)       |   |String | **required**                   |
@@ -468,11 +468,11 @@ Occurs usage example:
 
 ~~~java
         val resp=new FooResp();
-    ...
-    resp.errItem(1).setApplicationId("05");
-    resp.errItem(1).setErrorCodeSource("91302");
-    resp.errItem(2).setApplicationId("07");
-    resp.errItem(2).setErrorCodeSource("38000");
+        ...
+        resp.errItem(1).setApplicationId("05");
+        resp.errItem(1).setErrorCodeSource("91302");
+        resp.errItem(2).setApplicationId("07");
+        resp.errItem(2).setErrorCodeSource("38000");
 ~~~
 
 ## <a name="5">5. Special methods</a>

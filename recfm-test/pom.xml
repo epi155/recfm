@@ -14,13 +14,24 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <scala.version>2.13.8</scala.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.github.epi155</groupId>
-            <artifactId>recfm-java</artifactId>
+            <artifactId>recfm-lib-java</artifactId>
             <version>0.5.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.epi155</groupId>
+            <artifactId>recfm-lib-scala</artifactId>
+            <version>0.5.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -39,18 +50,83 @@
                 <version>0.5.0-SNAPSHOT</version>
                 <executions>
                     <execution>
+                        <id>java</id>
                         <goals>
                             <goal>fixed</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <settingsDirectory>${project.basedir}/src/test/resources</settingsDirectory>
+                            <outputSourceDirectory>${project.build.directory}/generated-test-sources/recfm/java
+                            </outputSourceDirectory>
+                            <settings>
+                                <setting>J-B280.yaml</setting>
+                                <setting>J-suez.yaml</setting>
+                            </settings>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>scala</id>
+                        <goals>
+                            <goal>fixed</goal>
+                        </goals>
+                        <phase>generate-test-sources</phase>
+                        <configuration>
+                            <language>scala</language>
+                            <settingsDirectory>${project.basedir}/src/test/resources</settingsDirectory>
+                            <outputSourceDirectory>${project.build.directory}/generated-test-sources/recfm/scala
+                            </outputSourceDirectory>
+                            <settings>
+                                <setting>S-B280.yaml</setting>
+                                <setting>S-suez.yaml</setting>
+                            </settings>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>target/generated-test-sources/recfm/java</source>
+                                <source>target/generated-test-sources/recfm/scala</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>4.6.2</version>
+                <executions>
+                    <execution>
+                        <id>Compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <settingsDirectory>${project.basedir}/src/test/resources</settingsDirectory>
-                    <outputSourceDirectory>${project.basedir}/src/test/java</outputSourceDirectory>
-                    <settings>
-                        <setting>B280.yaml</setting>
-                        <setting>suez.yaml</setting>
-                    </settings>
+                    <scalaVersion>${scala.version}</scalaVersion>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <configuration>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>

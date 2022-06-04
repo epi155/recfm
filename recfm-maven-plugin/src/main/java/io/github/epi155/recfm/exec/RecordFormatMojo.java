@@ -39,6 +39,9 @@ public class RecordFormatMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.resources[0].directory}", required = true)
     private String settingsDirectory;
 
+    @Parameter(defaultValue = "java", required = true)
+    private LanguageEnum language;
+
     @Parameter(defaultValue = "4", required = true)
     private int align;
 
@@ -105,7 +108,7 @@ public class RecordFormatMojo extends AbstractMojo {
             getLog().info("Generate from " + setting);
             try (InputStream inputStream = new FileInputStream(settingsDirectory + File.separator + setting)) {
                 ClassesDefine structs = yaml.load(inputStream);
-                LanguageEnum.java.generate(structs, args);
+                language.generate(structs, args);
             } catch (FileNotFoundException e) {
                 getLog().warn("Setting " + setting + " does not exist, ignored.");
             } catch (Exception e) {
@@ -115,7 +118,7 @@ public class RecordFormatMojo extends AbstractMojo {
         }
 
         getLog().info("Coping templates ...");
-        LanguageEnum.java.copyTemplate(this.getClass().getClassLoader(), outputUtilDirectory, outputUtilPackage);
+        language.copyTemplate(this.getClass().getClassLoader(), outputUtilDirectory, outputUtilPackage);
 
         getLog().info("Done.");
     }

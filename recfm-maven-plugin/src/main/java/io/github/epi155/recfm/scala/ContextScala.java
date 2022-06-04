@@ -20,6 +20,8 @@ import java.util.function.IntFunction;
 
 @Slf4j
 public class ContextScala extends LanguageContext implements IndentAble {
+    private static final String SYSTEM_PACKAGE = "io.github.epi155.recfm.scala";
+
     static void writeCopyright(PrintWriter pw) {
         String now = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
         pw.println("/*");
@@ -32,12 +34,18 @@ public class ContextScala extends LanguageContext implements IndentAble {
         log.info("- Prepare class {} ...", define.getName());
         val classFile = new File(cwd + File.separator + define.getName() + ".scala");
 
-        // no shorthand -> full check !?
-        if (define.noBadName() && define.noDuplicateName() && define.noHole() && define.noOverlap()) {
+        checkForVoid(define);
+        val utilPackage = (ga.utilPackage == null) ? SYSTEM_PACKAGE : ga.utilPackage;
+
+        boolean checkSuccesful = define.noBadName();
+        checkSuccesful &= define.noDuplicateName();
+        checkSuccesful &= define.noHole();
+        checkSuccesful &= define.noOverlap();
+        if (checkSuccesful) {
             try (PrintWriter pw = new PrintWriter(classFile)) {
                 writePackage(pw, wrtPackage);
-                if (!wrtPackage.equals(ga.utilPackage))
-                    writeImport(pw, ga.utilPackage);
+                if (!wrtPackage.equals(utilPackage))
+                    writeImport(pw, utilPackage);
                 generateClassCode(pw, define, ga, defaults, n -> String.format("%d", n - 1));
                 log.info("  * Created.");
             } catch (IOException e) {
@@ -112,11 +120,9 @@ public class ContextScala extends LanguageContext implements IndentAble {
         if (fld instanceof FieldOccurs) {
             writeBeginClassOccurs(pw, (FieldOccurs) fld, indent);
             access = accessField(pw, n -> String.format("%d+shift", n - 1));
-        } else if (fld instanceof FieldGroup) {
+        } else /* fld instanceof FieldGroup */ {
             writeBeginClassGroup(pw, fld.getName(), indent);
             access = accessField(pw, pos);
-        } else {
-            throw new RuntimeException();
         }
         fld.getFields().forEach(it -> {
             if (it instanceof SelfCheck) ((SelfCheck) it).selfCheck();
@@ -166,16 +172,18 @@ public class ContextScala extends LanguageContext implements IndentAble {
     private void writeValidator(PrintWriter pw, ClassDefine struct, Defaults defaults) {
         int padWidth = struct.evalPadWidth(6);
         val validator = validateField(pw, struct.getName(), defaults);
-        pw.printf("  override protected def validateFields(handler: FieldValidateHandler): Boolean =%n");
+        pw.printf("  override protected def validateFields(handler: FieldValidateHandler): Boolean = {%n");
         AtomicBoolean firstCheck = new AtomicBoolean(true);
         for (NakedField fld : struct.getFields()) {
             validator.validate(fld, padWidth, 1, firstCheck);
         }
         if (firstCheck.get()) {
-            pw.printf("        false%n");
+            pw.printf("    false%n");
+        } else {
+            pw.printf("    error%n");
         }
-        pw.printf("  override protected def auditFields(handler: FieldValidateHandler): Boolean =%n");
-        pw.printf("    var error = false%n");
+        closeBrace(pw);
+        pw.printf("  override protected def auditFields(handler: FieldValidateHandler): Boolean = {%n");
         AtomicBoolean firstAudit = new AtomicBoolean(true);
         for (NakedField fld : struct.getFields()) {
             if (fld instanceof CheckAware && ((CheckAware) fld).isAudit()) {
@@ -183,8 +191,11 @@ public class ContextScala extends LanguageContext implements IndentAble {
             }
         }
         if (firstAudit.get()) {
-            pw.printf("        false%n");
+            pw.printf("    false%n");
+        } else {
+            pw.printf("    error%n");
         }
+        closeBrace(pw);
     }
 
     private void writeCtorVoid(PrintWriter pw, String name) {

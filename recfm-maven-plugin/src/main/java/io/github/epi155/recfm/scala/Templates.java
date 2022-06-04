@@ -8,6 +8,8 @@ import java.util.Objects;
 
 @Slf4j
 public class Templates {
+    private Templates() {
+    }
     private static final String[] models = {
         "FieldValidateHandler",
         "FixBasic",
@@ -19,6 +21,7 @@ public class Templates {
     };
 
     public static void copy(ClassLoader cl, String cwd, String packg) {
+        if (packg == null) return;
         for (String model : models) {
             String source = "models/scala/" + model + ".scala";
             File target = new File(cwd + File.separator + model + ".scala");
