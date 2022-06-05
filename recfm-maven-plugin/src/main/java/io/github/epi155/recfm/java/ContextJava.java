@@ -1,5 +1,7 @@
 package io.github.epi155.recfm.java;
 
+import io.github.epi155.recfm.exec.DumpAware;
+import io.github.epi155.recfm.exec.DumpFactory;
 import io.github.epi155.recfm.exec.GenerateArgs;
 import io.github.epi155.recfm.exec.LanguageContext;
 import io.github.epi155.recfm.lang.AccessField;
@@ -16,8 +18,6 @@ import java.nio.CharBuffer;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -96,32 +96,10 @@ public class ContextJava extends LanguageContext implements IndentAble {
     }
 
     private void writeDump(PrintWriter pw, List<NakedField> fields) {
-        List<DumpPicure> lst = new ArrayList<>();
-        for (NakedField field : fields) {
-            if (field instanceof FieldAbc) {
-                FieldAbc fa = (FieldAbc) field;
-                if (fa.isRedefines()) continue;
-                lst.add(new DumpPicure(fa.getName(), fa.getOffset(), fa.getLength(), "X"));
-            } else if (field instanceof FieldNum) {
-                FieldNum fn = (FieldNum) field;
-                if (fn.isRedefines()) continue;
-                lst.add(new DumpPicure(fn.getName(), fn.getOffset(), fn.getLength(), "9"));
-            } else if (field instanceof FieldConstant) {
-                lst.add(new DumpPicure("<Constant>", field.getOffset(), field.getLength(), "X"));
-            } else if (field instanceof FieldOccurs) {
-                FieldOccurs fo = (FieldOccurs) field;
-                if (fo.isRedefines()) continue;
-                lst.addAll(occursDump(fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), 0));
-            } else if (field instanceof FieldGroup) {
-                FieldGroup fg = (FieldGroup) field;
-                if (fg.isRedefines()) continue;
-                lst.addAll(groupDump(fg.getName(), fg.getFields(), 0));
-            }
-        }
-        List<DumpAware> l2 = lst.stream().map(DumpPicure::normalize).collect(Collectors.toList());
+        List<DumpAware> l2 = prepareDump(fields);
         OptionalInt w = l2.stream().mapToInt(it -> it.name.length()).max();
         w.ifPresent(mx -> {
-            List<DumpAware> l3 = l2.stream().map(it -> new DumpAware(rpad(it.name, mx + 3, '.'), it.offset, it.length)).collect(Collectors.toList());
+            List<DumpAware> l3 = l2.stream().map(it -> it.dotFill(mx + 3)).collect(Collectors.toList());
             pw.printf("    @Override%n");
             pw.printf("    public String toString() {%n");
             pw.printf("        StringBuilder sb = new StringBuilder();%n");
@@ -132,61 +110,67 @@ public class ContextJava extends LanguageContext implements IndentAble {
 
     }
 
-    private Collection<? extends DumpPicure> occursDump(String prefix, int times, int size, List<NakedField> fields, int initBias) {
-        List<DumpPicure> lst = new ArrayList<>();
 
-        for (int k = 1, bias = initBias; k <= times; k++, bias += size) {
-            String px = prefix + "[" + k + "].";
-            for (NakedField field : fields) {
-                if (field instanceof FieldAbc) {
-                    FieldAbc fa = (FieldAbc) field;
-                    if (fa.isRedefines()) continue;
-                    lst.add(new DumpPicure(px + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
-                } else if (field instanceof FieldNum) {
-                    FieldNum fn = (FieldNum) field;
-                    if (fn.isRedefines()) continue;
-                    lst.add(new DumpPicure(px + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
-                } else if (field instanceof FieldConstant) {
-                    lst.add(new DumpPicure("<Constant>", bias + field.getOffset(), field.getLength(), "X"));
-                } else if (field instanceof FieldOccurs) {
-                    FieldOccurs fo = (FieldOccurs) field;
-                    if (fo.isRedefines()) continue;
-                    lst.addAll(occursDump(px + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
-                } else if (field instanceof FieldGroup) {
-                    FieldGroup fg = (FieldGroup) field;
-                    if (fg.isRedefines()) continue;
-                    lst.addAll(groupDump(px + fg.getName(), fg.getFields(), bias));
-                }
-            }
-        }
-        return lst;
+    @Override
+    protected DumpFactory dumpFactory() {
+        return DumpFactoryJava.getInstance();
     }
 
-    private Collection<? extends DumpPicure> groupDump(String prefix, List<NakedField> fields, int bias) {
-        List<DumpPicure> lst = new ArrayList<>();
-        for (NakedField field : fields) {
-            if (field instanceof FieldAbc) {
-                FieldAbc fa = (FieldAbc) field;
-                if (fa.isRedefines()) continue;
-                lst.add(new DumpPicure(prefix + "." + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
-            } else if (field instanceof FieldNum) {
-                FieldNum fn = (FieldNum) field;
-                if (fn.isRedefines()) continue;
-                lst.add(new DumpPicure(prefix + "." + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
-            } else if (field instanceof FieldConstant) {
-                lst.add(new DumpPicure("<Constant>", bias + field.getOffset(), field.getLength(), "X"));
-            } else if (field instanceof FieldOccurs) {
-                FieldOccurs fo = (FieldOccurs) field;
-                if (fo.isRedefines()) continue;
-                lst.addAll(occursDump(prefix + "." + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
-            } else if (field instanceof FieldGroup) {
-                FieldGroup fg = (FieldGroup) field;
-                if (fg.isRedefines()) continue;
-                lst.addAll(groupDump(prefix + "." + fg.getName(), fg.getFields(), bias));
-            }
-        }
-        return lst;
-    }
+//    private Collection<? extends DumpPicure> occursDump(String prefix, int times, int size, List<NakedField> fields, int initBias) {
+//        List<DumpPicure> lst = new ArrayList<>();
+//
+//        for (int k = 1, bias = initBias; k <= times; k++, bias += size) {
+//            String px = prefix + "[" + k + "].";
+//            for (NakedField field : fields) {
+//                if (field instanceof FieldAbc) {
+//                    FieldAbc fa = (FieldAbc) field;
+//                    if (fa.isRedefines()) continue;
+//                    lst.add(new DumpPicure(px + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
+//                } else if (field instanceof FieldNum) {
+//                    FieldNum fn = (FieldNum) field;
+//                    if (fn.isRedefines()) continue;
+//                    lst.add(new DumpPicure(px + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
+//                } else if (field instanceof FieldConstant) {
+//                    lst.add(new DumpPicure("<Constant>", bias + field.getOffset(), field.getLength(), "X"));
+//                } else if (field instanceof FieldOccurs) {
+//                    FieldOccurs fo = (FieldOccurs) field;
+//                    if (fo.isRedefines()) continue;
+//                    lst.addAll(occursDump(px + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
+//                } else if (field instanceof FieldGroup) {
+//                    FieldGroup fg = (FieldGroup) field;
+//                    if (fg.isRedefines()) continue;
+//                    lst.addAll(groupDump(px + fg.getName(), fg.getFields(), bias));
+//                }
+//            }
+//        }
+//        return lst;
+//    }
+
+//    private Collection<? extends DumpPicure> groupDump(String prefix, List<NakedField> fields, int bias) {
+//        List<DumpPicure> lst = new ArrayList<>();
+//        for (NakedField field : fields) {
+//            if (field instanceof FieldAbc) {
+//                FieldAbc fa = (FieldAbc) field;
+//                if (fa.isRedefines()) continue;
+//                lst.add(new DumpPicure(prefix + "." + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
+//            } else if (field instanceof FieldNum) {
+//                FieldNum fn = (FieldNum) field;
+//                if (fn.isRedefines()) continue;
+//                lst.add(new DumpPicure(prefix + "." + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
+//            } else if (field instanceof FieldConstant) {
+//                lst.add(new DumpPicure("<Constant>", bias + field.getOffset(), field.getLength(), "X"));
+//            } else if (field instanceof FieldOccurs) {
+//                FieldOccurs fo = (FieldOccurs) field;
+//                if (fo.isRedefines()) continue;
+//                lst.addAll(occursDump(prefix + "." + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
+//            } else if (field instanceof FieldGroup) {
+//                FieldGroup fg = (FieldGroup) field;
+//                if (fg.isRedefines()) continue;
+//                lst.addAll(groupDump(prefix + "." + fg.getName(), fg.getFields(), bias));
+//            }
+//        }
+//        return lst;
+//    }
 
     private void generateGroupCode(FieldGroup fld, PrintWriter pw, int indent, GenerateArgs ga, Defaults defaults, IntFunction<String> pos) {
         AccessField access;
@@ -376,32 +360,32 @@ public class ContextJava extends LanguageContext implements IndentAble {
         pw.printf("package %s;%n%n", packg);
     }
 
-    private static class DumpAware {
-        public final String name;
-        public final int offset;
-        public final int length;
+//    private static class DumpAware {
+//        public final String name;
+//        public final int offset;
+//        public final int length;
 
-        public DumpAware(String name, int offset, int length) {
-            this.name = name;
-            this.offset = offset;
-            this.length = length;
-        }
+//        public DumpAware(String name, int offset, int length) {
+//            this.name = name;
+//            this.offset = offset;
+//            this.length = length;
+//        }
+//
+//        public void dump(PrintWriter pw) {
+//            pw.printf("        sb.append(\"%s : \").append(dump(%d,%d)).append('\\n');%n", name, offset - 1, length);
+//        }
+//    }
 
-        public void dump(PrintWriter pw) {
-            pw.printf("        sb.append(\"%s : \").append(dump(%d,%d)).append('\\n');%n", name, offset - 1, length);
-        }
-    }
-
-    private static class DumpPicure extends DumpAware {
-        public final String picture;
-
-        public DumpPicure(String name, int offset, int length, String picture) {
-            super(name, offset, length);
-            this.picture = picture;
-        }
-
-        public DumpAware normalize() {
-            return new DumpAware(name + ": " + picture + "(" + length + ")@" + offset, offset, length);
-        }
-    }
+//    private static class DumpPicure extends DumpAware {
+//        public final String picture;
+//
+//        public DumpPicure(String name, int offset, int length, String picture) {
+//            super(name, offset, length);
+//            this.picture = picture;
+//        }
+//
+//        public DumpAware normalize() {
+//            return new DumpAware(name + ": " + picture + "(" + length + ")@" + offset, offset, length);
+//        }
+//    }
 }

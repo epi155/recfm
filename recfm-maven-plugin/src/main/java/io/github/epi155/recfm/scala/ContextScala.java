@@ -1,5 +1,7 @@
 package io.github.epi155.recfm.scala;
 
+import io.github.epi155.recfm.exec.DumpAware;
+import io.github.epi155.recfm.exec.DumpFactory;
 import io.github.epi155.recfm.exec.GenerateArgs;
 import io.github.epi155.recfm.exec.LanguageContext;
 import io.github.epi155.recfm.lang.AccessField;
@@ -15,8 +17,11 @@ import java.io.PrintWriter;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.OptionalInt;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ContextScala extends LanguageContext implements IndentAble {
@@ -105,13 +110,33 @@ public class ContextScala extends LanguageContext implements IndentAble {
         struct.getFields().forEach(it -> {
             if (it instanceof SettableField) access.createMethods((SettableField) it, 0, ga);
         });
+        writeDump(pw, struct.getFields());
         writeEndClass(pw, 0);
+    }
+
+    private void writeDump(PrintWriter pw, List<NakedField> fields) {
+        List<DumpAware> l2 = prepareDump(fields);
+        OptionalInt w = l2.stream().mapToInt(it -> it.name.length()).max();
+        w.ifPresent(mx -> {
+            List<DumpAware> l3 = l2.stream().map(it -> it.dotFill(mx + 3)).collect(Collectors.toList());
+            pw.printf("  override def toString: String = {%n");
+            pw.printf("    val sb = new StringBuilder%n");
+            l3.forEach(it -> it.dump(pw));
+            pw.printf("    return sb.toString%n");
+            closeBrace(pw);
+        });
+
+    }
+
+    @Override
+    protected DumpFactory dumpFactory() {
+        return DumpFactoryScala.getInstance();
     }
 
     //    def of(s: String) = new SuezHead(s)
 //    def of(r: FixRecord) = new SuezHead(r)
     private void writeFactories(PrintWriter pw, ClassDefine struct) {
-        pw.printf("  def of(s: String) = new %s(s)%n", struct.getName());
+        pw.printf("  def decode(s: String) = new %s(s)%n", struct.getName());
         pw.printf("  def of(r: FixRecord) = new %s(r)%n", struct.getName());
     }
 

@@ -1,7 +1,8 @@
 package io.github.epi155.recfm.scala
 
 import java.text.NumberFormat
-import java.util.Arrays
+import java.util
+import scala.collection.mutable
 
 abstract class FixEngine(
                           length: Int,
@@ -18,7 +19,7 @@ abstract class FixEngine(
   else
     buildEmpty(length)
 
-  override def toString = new String(rawData)
+  def encode = new String(rawData)
 
   def validate(handler: FieldValidateHandler): Boolean = validateFields(handler)
 
@@ -388,16 +389,27 @@ abstract class FixEngine(
     false
   }
 
-  private def buildEmpty(length: Int) = {
+  protected def dump(offset: Int, count: Int): String = {
+    val sb: mutable.StringBuilder = new mutable.StringBuilder
+    for (k <- 0 until count) {
+      var c: Char = rawData(offset + k)
+      if (c <= 32) c = (0x2400 + c).toChar
+      else if (c == 127) c = '\u2421' // delete
+      sb.append(c)
+    }
+    sb.toString
+  }
+
+  private def buildEmpty(length: Int): Unit = {
     this.rawData = new Array[Char](length)
     initialize()
   }
 
-  private def buildFromString(length: Int, s: String, overflowError: Boolean, underflowError: Boolean) {
+  private def buildFromString(length: Int, s: String, overflowError: Boolean, underflowError: Boolean): Unit = {
     if (s.length == length) rawData = s.toCharArray
     else if (s.length > length) {
       if (overflowError) throw new FixEngine.RecordOverflowException(FixEngine.RECORD_LENGTH + s.length + FixEngine.EXPECTED + length)
-      rawData = Arrays.copyOfRange(s.toCharArray, 0, length)
+      rawData = util.Arrays.copyOfRange(s.toCharArray, 0, length)
     }
     else {
       if (underflowError) throw new FixEngine.RecordUnderflowException(FixEngine.RECORD_LENGTH + s.length + FixEngine.EXPECTED + length)
@@ -407,11 +419,11 @@ abstract class FixEngine(
     }
   }
 
-  private def buildFromRecord(lrec: Int, r: FixRecord, overflowError: Boolean, underflowError: Boolean) {
+  private def buildFromRecord(lrec: Int, r: FixRecord, overflowError: Boolean, underflowError: Boolean): Unit = {
     if (r.rawData.length == lrec) rawData = r.rawData
     else if (r.rawData.length > lrec) {
       if (overflowError) throw new FixEngine.RecordOverflowException(FixEngine.RECORD_LENGTH + r.rawData.length + FixEngine.EXPECTED + lrec)
-      rawData = Arrays.copyOfRange(r.rawData, 0, lrec)
+      rawData = util.Arrays.copyOfRange(r.rawData, 0, lrec)
     }
     else {
       if (underflowError) throw new FixEngine.RecordUnderflowException(FixEngine.RECORD_LENGTH + r.rawData.length + FixEngine.EXPECTED + lrec)
@@ -419,8 +431,8 @@ abstract class FixEngine(
       initialize()
       System.arraycopy(r.rawData, 0, rawData, 0, r.rawData.length)
     }
-
   }
+
 }
 
 object FixEngine {
