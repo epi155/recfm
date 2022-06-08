@@ -74,3 +74,16 @@ classes:
       - !Num { name: month, at: 6, len: 2, num: true }
       - !Fil { at: 8, len: 1 }
       - !Num { name: date , at: 9, len: 2, num: true }
+
+  - name: FooAnag
+    length: 160
+    fields:
+      - !Abc { name: firstName , at: 1, len: 40, check: Latin1 }
+      - !Abc { name: lastName  , at: 41, len: 40, check: Latin1 }
+      - !Abc { name: birdDate  , at: 81, len: 10 }
+      - !Abc { name: birdPlace , at: 91, len: 40, check: Valid }
+      - !Abc { name: taxCode   , at: 131, len: 16 }
+      - !Fil { at: 147, len: 4 }
+      - !Num { name: weightKg  , at: 151, len: 3, num: true }
+      - !Num { name: heightCm  , at: 154, len: 3, num: true }
+      - !Fil { at: 157, len: 4 }

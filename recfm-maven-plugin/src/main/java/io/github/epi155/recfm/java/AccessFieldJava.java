@@ -217,42 +217,66 @@ class AccessFieldJava extends AccessField implements IndentAble {
     }
 
     @Override
-    protected void createMethodsAbc(@NotNull FieldAbc fld, int indent, boolean doc) {
+    protected void createMethodsAbc(@NotNull FieldAbc fld, int indent, GenerateArgs ga) {
         val wrkName = LanguageContext.getWrkName(fld.getName());
-        alphanumeric(fld, wrkName, indent, doc);
+        alphanumeric(fld, wrkName, indent, ga);
     }
 
-    private void alphanumeric(FieldAbc fld, String wrkName, int indent, boolean doc) {
-        if (doc) {
-            indent(pw, indent);
-            pw.printf("    /**%n");
-            indent(pw, indent);
-            pw.printf("     * Abc @%d+%d%n", fld.getOffset(), fld.getLength());
-            indent(pw, indent);
-            pw.printf("     * @return string value%n");
-            indent(pw, indent);
-            pw.printf("     */%n");
-        }
+    private void alphanumeric(FieldAbc fld, String wrkName, int indent, GenerateArgs ga) {
+        if (ga.doc) docGetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("    public String get%s() { return getAbc(%s, %d); }%n",
             wrkName, pos.apply(fld.getOffset()), fld.getLength());
         normalizeAbc(fld);
-        if (doc) {
-            indent(pw, indent);
-            pw.printf("    /**%n");
-            indent(pw, indent);
-            pw.printf("     * Abc @%d+%d%n", fld.getOffset(), fld.getLength());
-            indent(pw, indent);
-            pw.printf("     * @param s string value%n");
-            indent(pw, indent);
-            pw.printf("     */%n");
-        }
+        if (ga.doc) docSetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("    public void set%s(String s) {%n", wrkName);
+        if (ga.check) chkSetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("        setAbc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c');%n",
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow(), fld.getPadChar());
         indent(pw, indent);
         pw.printf("    }%n");
+    }
+
+    private void chkSetter(PrintWriter pw, FieldAbc fld, int indent) {
+        switch (fld.getCheck()) {
+            case None:
+                break;
+            case Ascii:
+                indent(pw, indent);
+                pw.printf("        testAscii(s);%n");
+                break;
+            case Latin1:
+                indent(pw, indent);
+                pw.printf("        testLatin(s);%n");
+                break;
+            case Valid:
+                indent(pw, indent);
+                pw.printf("        testValid(s);%n");
+                break;
+        }
+    }
+
+    private void docSetter(PrintWriter pw, FieldAbc fld, int indent) {
+        indent(pw, indent);
+        pw.printf("    /**%n");
+        indent(pw, indent);
+        pw.printf("     * Abc @%d+%d%n", fld.getOffset(), fld.getLength());
+        indent(pw, indent);
+        pw.printf("     * @param s string value%n");
+        indent(pw, indent);
+        pw.printf("     */%n");
+    }
+
+    private void docGetter(PrintWriter pw, FieldAbc fld, int indent) {
+        indent(pw, indent);
+        pw.printf("    /**%n");
+        indent(pw, indent);
+        pw.printf("     * Abc @%d+%d%n", fld.getOffset(), fld.getLength());
+        indent(pw, indent);
+        pw.printf("     * @return string value%n");
+        indent(pw, indent);
+        pw.printf("     */%n");
     }
 }

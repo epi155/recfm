@@ -3,6 +3,7 @@ package io.github.epi155.recfm.lang;
 import io.github.epi155.recfm.exec.GenerateArgs;
 import io.github.epi155.recfm.type.*;
 import lombok.Data;
+import lombok.val;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
@@ -28,10 +29,13 @@ public abstract class AccessField {
      * @param fld    settable field
      * @param indent code indent
      * @param ga     generator arguments
+     * @param check  global check alphanumeric fields
      */
-    public void createMethods(SettableField fld, int indent, GenerateArgs ga) {
+    public void createMethods(SettableField fld, int indent, GenerateArgs ga, CheckChar check) {
         if (fld instanceof FieldAbc) {
-            createMethodsAbc((FieldAbc) fld, indent, ga.doc);
+            val abc = (FieldAbc) fld;
+            if (abc.getCheck() == null) abc.setCheck(check);
+            createMethodsAbc(abc, indent, ga);
         } else if (fld instanceof FieldNum) {
             createMethodsNum((FieldNum) fld, indent, ga);
         }
@@ -51,9 +55,9 @@ public abstract class AccessField {
      *
      * @param fld    alphanumeric field
      * @param indent code indent
-     * @param doc    javadoc required
+     * @param ga     javadoc required
      */
-    protected abstract void createMethodsAbc(FieldAbc fld, int indent, boolean doc);
+    protected abstract void createMethodsAbc(FieldAbc fld, int indent, GenerateArgs ga);
 
     /**
      * Set system default on numeric field overflow/underflow

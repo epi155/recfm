@@ -1,5 +1,9 @@
 package io.github.epi155.recfm.java;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class FixError {
     private FixError() {
     }
@@ -41,6 +45,34 @@ public class FixError {
 
         public RecordUnderflowException(String s) {
             super(s);
+        }
+    }
+
+    public static class NotAsciiException extends SetterException {
+        public NotAsciiException(char c, int u) {
+            super(String.format("Offending char: U+%04X @+%d", (int) c, u + 1));
+        }
+    }
+
+    private static class SetterException extends RuntimeException {
+        SetterException(String message) {
+            super(message);
+            fillInStackTrace();
+            List<StackTraceElement> stack = new ArrayList<>(Arrays.asList(getStackTrace()));
+            stack.remove(0);
+            setStackTrace(stack.toArray(new StackTraceElement[0]));
+        }
+    }
+
+    public static class NotLatinException extends SetterException {
+        public NotLatinException(int c, int u) {
+            super(String.format("Offending char: U+%04X @+%d", c, u + 1));
+        }
+    }
+
+    public static class NotValidException extends SetterException {
+        public NotValidException(char c, int u) {
+            super(String.format("Offending char: U+%04X @+%d", (int) c, u + 1));
         }
     }
 }

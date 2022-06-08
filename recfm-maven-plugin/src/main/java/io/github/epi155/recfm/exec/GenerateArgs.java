@@ -13,4 +13,6 @@ public class GenerateArgs {
     public final int align = 4;
     @Builder.Default
     public final boolean doc = false;
+    @Builder.Default
+    public final boolean check = true;
 }

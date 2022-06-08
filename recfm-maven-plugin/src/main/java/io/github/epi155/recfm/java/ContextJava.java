@@ -89,7 +89,7 @@ public class ContextJava extends LanguageContext implements IndentAble {
         writeInitializer(pw, struct, defaults);
         writeValidator(pw, struct, defaults);
         struct.getFields().forEach(it -> {
-            if (it instanceof SettableField) access.createMethods((SettableField) it, 0, ga);
+            if (it instanceof SettableField) access.createMethods((SettableField) it, 0, ga, defaults.getCheck());
         });
         writeDump(pw, struct.getFields());
         writeEndClass(pw, 0);
@@ -186,7 +186,7 @@ public class ContextJava extends LanguageContext implements IndentAble {
             if (it instanceof FieldGroup) generateGroupCode((FieldGroup) it, pw, indent + 4, ga, defaults, pos);
         });
         fld.getFields().forEach(it -> {
-            if (it instanceof SettableField) access.createMethods((SettableField) it, indent, ga);
+            if (it instanceof SettableField) access.createMethods((SettableField) it, indent, ga, defaults.getCheck());
         });
         writeEndClass(pw, indent);
     }

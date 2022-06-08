@@ -300,6 +300,17 @@ abstract class FixEngine {
         return false;
     }
 
+    protected static void testAscii(String value) {
+        if (value == null) return;
+        char[] raw = value.toCharArray();
+        for (int u = 0; u < raw.length; u++) {
+            char c = raw[u];
+            if (!(32 <= c && c <= 127)) {
+                throw new FixError.NotAsciiException(c, u);
+            }
+        }
+    }
+
     protected boolean checkEqual(int offset, int count, FieldValidateHandler handler, String value) {
         for (int u = offset, v = 0; v < count; u++, v++) {
             if (rawData[u] != value.charAt(v)) {
@@ -334,10 +345,32 @@ abstract class FixEngine {
         return false;
     }
 
+    protected static void testLatin(String value) {
+        if (value == null) return;
+        char[] raw = value.toCharArray();
+        for (int u = 0; u < raw.length; u++) {
+            int c = (raw[u] & 0xff7f);
+            if (!(32 <= c && c <= 127)) {
+                throw new FixError.NotLatinException(c, u);
+            }
+        }
+    }
+
+    protected static void testValid(String value) {
+        if (value == null) return;
+        char[] raw = value.toCharArray();
+        for (int u = 0; u < raw.length; u++) {
+            char c = raw[u];
+            if (Character.isISOControl(c) || !Character.isDefined(c)) {
+                throw new FixError.NotValidException(c, u);
+            }
+        }
+    }
+
     protected boolean checkValid(String name, int offset, int count, FieldValidateHandler handler) {
         for (int u = offset, v = 0; v < count; u++, v++) {
             char c = rawData[u];
-            if (!Character.isDefined(c)) {
+            if (!Character.isDefined(c) || Character.isISOControl(c)) {
                 handler.error(name, offset, count, u + 1, ValidateError.NotValid);
                 return true;
             }

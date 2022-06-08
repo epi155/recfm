@@ -1,7 +1,8 @@
 package com.example.tests
 
 import com.example.syss.cams.online.B280v2xReq
-import com.example.syss.file.FooResp
+import com.example.syss.file.{FooAnag, FooResp}
+import io.github.epi155.recfm.scala.FixError
 import org.scalatest.funsuite.AnyFunSuite
 
 class UseExampleTest extends AnyFunSuite {
@@ -29,4 +30,27 @@ class UseExampleTest extends AnyFunSuite {
     resp.errItem(2).applicationId = "07"
     resp.errItem(2).errorCodeSource = "38000"
   }
+
+  test("testAnag-Ascii") {
+    val anag = new FooAnag
+    assertThrows[FixError.NotAsciiException] { // Result type: Assertion
+      anag.taxCode = "LNÑFRC50A01F501X"
+    }
+    println(anag)
+  }
+  test("testAnag-Latin") {
+    val anag = new FooAnag
+    assertThrows[FixError.NotLatinException] { // Result type: Assertion
+      anag.firstName = "Franç€sco"
+    }
+    println(anag)
+  }
+  test("testAnag-Valid") {
+    val anag = new FooAnag
+    assertThrows[FixError.NotValidException] { // Result type: Assertion
+      anag.birdPlace = "Los\u2fe0Agelos"
+    }
+    println(anag)
+  }
+
 }

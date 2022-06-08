@@ -120,17 +120,37 @@ public class AccessFieldScala extends AccessField implements IndentAble {
 //    }
 
     @Override
-    protected void createMethodsAbc(FieldAbc fld, int indent, boolean doc) {
+    protected void createMethodsAbc(FieldAbc fld, int indent, GenerateArgs ga) {
         indent(pw, indent);
         pw.printf("  final def %s: String = { abc(%s, %d); }%n",
             fld.getName(), pos.apply(fld.getOffset()), fld.getLength());
         normalizeAbc(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
+        if (ga.check) chkSetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("    abc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c')%n",
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow(), fld.getPadChar());
         indent(pw, indent);
         pw.printf("  }%n");
+    }
+
+    private void chkSetter(PrintWriter pw, FieldAbc fld, int indent) {
+        switch (fld.getCheck()) {
+            case None:
+                break;
+            case Ascii:
+                indent(pw, indent);
+                pw.printf("    testAscii(s);%n");
+                break;
+            case Latin1:
+                indent(pw, indent);
+                pw.printf("    testLatin(s);%n");
+                break;
+            case Valid:
+                indent(pw, indent);
+                pw.printf("    testValid(s);%n");
+                break;
+        }
     }
 }

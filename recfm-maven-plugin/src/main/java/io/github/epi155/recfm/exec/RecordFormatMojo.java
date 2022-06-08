@@ -101,6 +101,7 @@ public class RecordFormatMojo extends AbstractMojo {
             .utilPackage(outputUtilPackage)
             .align(align)
             .doc(doc)
+            .check(true)
             .build();
 
         getLog().info("Settings directory: " + settingsDirectory);
