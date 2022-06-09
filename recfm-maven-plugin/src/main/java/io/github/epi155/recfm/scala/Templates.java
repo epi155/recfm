@@ -14,6 +14,7 @@ public class Templates {
         "FieldValidateHandler",
         "FixBasic",
         "FixEngine",
+        "FixError",
         "FixRecord",
         "OverflowAction",
         "UnderflowAction",
