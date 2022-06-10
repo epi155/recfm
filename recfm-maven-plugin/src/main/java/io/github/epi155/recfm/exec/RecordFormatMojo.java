@@ -118,8 +118,10 @@ public class RecordFormatMojo extends AbstractMojo {
             }
         }
 
-        getLog().info("Coping templates ...");
-        language.copyTemplate(this.getClass().getClassLoader(), outputUtilDirectory, outputUtilPackage);
+        if (outputUtilDirectory != null && outputUtilPackage != null) {
+            getLog().info("Coping templates ...");
+            language.copyTemplate(this.getClass().getClassLoader(), outputUtilDirectory, outputUtilPackage);
+        }
 
         getLog().info("Done.");
     }

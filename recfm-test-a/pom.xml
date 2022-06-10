@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>recfm-test</artifactId>
+    <artifactId>recfm-test-a</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -18,16 +18,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>io.github.epi155</groupId>
-            <artifactId>recfm-lib-java</artifactId>
-            <version>0.5.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.epi155</groupId>
-            <artifactId>recfm-lib-scala</artifactId>
-            <version>0.5.0-SNAPSHOT</version>
-        </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
@@ -85,6 +75,7 @@
                             <settingsDirectory>${project.basedir}/src/test/resources</settingsDirectory>
                             <outputSourceDirectory>${project.build.directory}/generated-test-sources/recfm/java
                             </outputSourceDirectory>
+                            <outputUtilPackage>io.java.sys</outputUtilPackage>
                             <settings>
                                 <setting>J-B280.yaml</setting>
                                 <setting>J-suez.yaml</setting>
@@ -102,6 +93,7 @@
                             <settingsDirectory>${project.basedir}/src/test/resources</settingsDirectory>
                             <outputSourceDirectory>${project.build.directory}/generated-test-sources/recfm/scala
                             </outputSourceDirectory>
+                            <outputUtilPackage>io.scala.sys</outputUtilPackage>
                             <settings>
                                 <setting>S-B280.yaml</setting>
                                 <setting>S-suez.yaml</setting>
@@ -186,4 +178,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

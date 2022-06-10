@@ -30,6 +30,9 @@ class TestMojo {
     @Test
     void testPlans1() {
         Assertions.assertAll(() -> {
+            log.info("Check for output directory ...");
+            String outputUtilDirectory = Tools.makeDirectory(outputSourceDirectory, outputUtilPackage);
+
             Yaml yaml = RecordFormatMojo.prepareYaml();
 
             log.info("Plans directory: " + plansDirectory);
@@ -45,9 +48,10 @@ class TestMojo {
                     );
                 }
             }
-            log.info("Coping templates ...");
-            String outputUtilDirectory = Tools.makeDirectory(outputSourceDirectory, outputUtilPackage);
-            language.copyTemplate(this.getClass().getClassLoader(), outputUtilDirectory, outputUtilPackage);
+            if (outputUtilDirectory != null && outputUtilPackage != null) {
+                log.info("Coping templates ...");
+                language.copyTemplate(this.getClass().getClassLoader(), outputUtilDirectory, outputUtilPackage);
+            }
 
             log.info("Done.");
 

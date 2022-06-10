@@ -1,4 +1,3 @@
-
 public interface FixBasic {
     boolean validate(FieldValidateHandler handler);
 

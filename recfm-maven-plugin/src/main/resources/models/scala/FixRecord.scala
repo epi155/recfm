@@ -1,4 +1,3 @@
-
 abstract class FixRecord(length: Int,
                          s: String,
                          r: FixRecord,

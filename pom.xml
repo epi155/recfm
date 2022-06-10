@@ -10,8 +10,9 @@
     <modules>
         <module>recfm-maven-plugin</module>
         <module>recfm-lib-java</module>
-        <module>recfm-test</module>
         <module>recfm-lib-scala</module>
+        <module>recfm-test-so</module>
+        <module>recfm-test-a</module>
     </modules>
     <packaging>pom</packaging>
 

@@ -10,6 +10,7 @@ import io.github.epi155.recfm.lang.ValidateField;
 import io.github.epi155.recfm.type.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class ContextJava extends LanguageContext implements IndentAble {
     }
 
     @Override
-    public void copyTemplate(ClassLoader classLoader, String utilDirectory, String utilPackage) {
+    public void copyTemplate(ClassLoader classLoader, @NotNull String utilDirectory, @NotNull String utilPackage) {
         Templates.copy(classLoader, utilDirectory, utilPackage);
     }
 
@@ -110,67 +111,10 @@ public class ContextJava extends LanguageContext implements IndentAble {
 
     }
 
-
     @Override
     protected DumpFactory dumpFactory() {
         return DumpFactoryJava.getInstance();
     }
-
-//    private Collection<? extends DumpPicure> occursDump(String prefix, int times, int size, List<NakedField> fields, int initBias) {
-//        List<DumpPicure> lst = new ArrayList<>();
-//
-//        for (int k = 1, bias = initBias; k <= times; k++, bias += size) {
-//            String px = prefix + "[" + k + "].";
-//            for (NakedField field : fields) {
-//                if (field instanceof FieldAbc) {
-//                    FieldAbc fa = (FieldAbc) field;
-//                    if (fa.isRedefines()) continue;
-//                    lst.add(new DumpPicure(px + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
-//                } else if (field instanceof FieldNum) {
-//                    FieldNum fn = (FieldNum) field;
-//                    if (fn.isRedefines()) continue;
-//                    lst.add(new DumpPicure(px + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
-//                } else if (field instanceof FieldConstant) {
-//                    lst.add(new DumpPicure("<Constant>", bias + field.getOffset(), field.getLength(), "X"));
-//                } else if (field instanceof FieldOccurs) {
-//                    FieldOccurs fo = (FieldOccurs) field;
-//                    if (fo.isRedefines()) continue;
-//                    lst.addAll(occursDump(px + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
-//                } else if (field instanceof FieldGroup) {
-//                    FieldGroup fg = (FieldGroup) field;
-//                    if (fg.isRedefines()) continue;
-//                    lst.addAll(groupDump(px + fg.getName(), fg.getFields(), bias));
-//                }
-//            }
-//        }
-//        return lst;
-//    }
-
-//    private Collection<? extends DumpPicure> groupDump(String prefix, List<NakedField> fields, int bias) {
-//        List<DumpPicure> lst = new ArrayList<>();
-//        for (NakedField field : fields) {
-//            if (field instanceof FieldAbc) {
-//                FieldAbc fa = (FieldAbc) field;
-//                if (fa.isRedefines()) continue;
-//                lst.add(new DumpPicure(prefix + "." + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
-//            } else if (field instanceof FieldNum) {
-//                FieldNum fn = (FieldNum) field;
-//                if (fn.isRedefines()) continue;
-//                lst.add(new DumpPicure(prefix + "." + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
-//            } else if (field instanceof FieldConstant) {
-//                lst.add(new DumpPicure("<Constant>", bias + field.getOffset(), field.getLength(), "X"));
-//            } else if (field instanceof FieldOccurs) {
-//                FieldOccurs fo = (FieldOccurs) field;
-//                if (fo.isRedefines()) continue;
-//                lst.addAll(occursDump(prefix + "." + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
-//            } else if (field instanceof FieldGroup) {
-//                FieldGroup fg = (FieldGroup) field;
-//                if (fg.isRedefines()) continue;
-//                lst.addAll(groupDump(prefix + "." + fg.getName(), fg.getFields(), bias));
-//            }
-//        }
-//        return lst;
-//    }
 
     private void generateGroupCode(FieldGroup fld, PrintWriter pw, int indent, GenerateArgs ga, Defaults defaults, IntFunction<String> pos) {
         AccessField access;
@@ -360,32 +304,4 @@ public class ContextJava extends LanguageContext implements IndentAble {
         pw.printf("package %s;%n%n", packg);
     }
 
-//    private static class DumpAware {
-//        public final String name;
-//        public final int offset;
-//        public final int length;
-
-//        public DumpAware(String name, int offset, int length) {
-//            this.name = name;
-//            this.offset = offset;
-//            this.length = length;
-//        }
-//
-//        public void dump(PrintWriter pw) {
-//            pw.printf("        sb.append(\"%s : \").append(dump(%d,%d)).append('\\n');%n", name, offset - 1, length);
-//        }
-//    }
-
-//    private static class DumpPicure extends DumpAware {
-//        public final String picture;
-//
-//        public DumpPicure(String name, int offset, int length, String picture) {
-//            super(name, offset, length);
-//            this.picture = picture;
-//        }
-//
-//        public DumpAware normalize() {
-//            return new DumpAware(name + ": " + picture + "(" + length + ")@" + offset, offset, length);
-//        }
-//    }
 }

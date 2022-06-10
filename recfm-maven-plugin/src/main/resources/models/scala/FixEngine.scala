@@ -1,4 +1,3 @@
-
 import java.text.NumberFormat
 import java.util
 
@@ -124,6 +123,15 @@ abstract class FixEngine(
     }
   }
 
+  protected def testAscii(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
+    }
+  }
+
   protected def num(s: String, offset: Int, count: Int, ovfl: OverflowAction.OverflowAction, unfl: UnderflowAction.UnderflowAction): Unit = {
     if (s == null) {
       if (unfl eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
@@ -152,19 +160,6 @@ abstract class FixEngine(
     }
   }
 
-  private def truncNumLeft(s: String, offset: Int, count: Int): Unit = {
-    var u = s.length - 1
-    var v = offset + count - 1
-    while ( {
-      v >= offset
-    }) {
-      if (moveNum(s.charAt(u), v)) throw new FixError.InvalidNumberException(FixEngine.INVALID_NUMERIC + s + FixEngine.FOR_FIELD_AT + offset)
-
-      u -= 1
-      v -= 1
-    }
-  }
-
   private def fillChar(offset: Int, count: Int, fill: Char): Unit = {
     var u = 0
     var v = offset
@@ -178,11 +173,11 @@ abstract class FixEngine(
     }
   }
 
-  private def moveNum(c: Char, v: Int) = if ('0' <= c && c <= '9') {
-    rawData(v) = c
-    false
+  protected def fill(offset: Int, count: Int, s: String): Unit = {
+    if (s.length == count) setAbcAsIs(s, offset)
+    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
   }
-  else true
 
   private def truncNumRight(s: String, offset: Int, count: Int): Unit = {
     var u = 0
@@ -219,6 +214,19 @@ abstract class FixEngine(
     }
   }
 
+  private def setAbcAsIs(s: String, offset: Int): Unit = {
+    var u = 0
+    var v = offset
+    while ( {
+      u < s.length
+    }) {
+      rawData(v) = s.charAt(u)
+
+      u += 1
+      v += 1
+    }
+  }
+
   private def padNumToRight(s: String, offset: Int, count: Int): Unit = {
     var u = 0
     var v = offset
@@ -252,15 +260,6 @@ abstract class FixEngine(
 
       u += 1
       v += 1
-    }
-  }
-
-  protected def testAscii(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
     }
   }
 
@@ -324,11 +323,11 @@ abstract class FixEngine(
     false
   }
 
-  protected def fill(offset: Int, count: Int, s: String): Unit = {
-    if (s.length == count) setAbcAsIs(s, offset)
-    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+  private def moveNum(c: Char, v: Int) = if ('0' <= c && c <= '9') {
+    rawData(v) = c
+    false
   }
+  else true
 
   protected def checkEqual(name: String, offset: Int, count: Int, handler: FieldValidateHandler, value: String): Boolean = {
     var u = offset
@@ -347,16 +346,16 @@ abstract class FixEngine(
     false
   }
 
-  private def setAbcAsIs(s: String, offset: Int): Unit = {
-    var u = 0
-    var v = offset
+  private def truncNumLeft(s: String, offset: Int, count: Int): Unit = {
+    var u = s.length - 1
+    var v = offset + count - 1
     while ( {
-      u < s.length
+      v >= offset
     }) {
-      rawData(v) = s.charAt(u)
+      if (moveNum(s.charAt(u), v)) throw new FixError.InvalidNumberException(FixEngine.INVALID_NUMERIC + s + FixEngine.FOR_FIELD_AT + offset)
 
-      u += 1
-      v += 1
+      u -= 1
+      v -= 1
     }
   }
 

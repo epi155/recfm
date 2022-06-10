@@ -1,4 +1,3 @@
-
 public abstract class FixRecord extends FixEngine implements FixBasic {
     protected FixRecord(int length) {
         super(length);

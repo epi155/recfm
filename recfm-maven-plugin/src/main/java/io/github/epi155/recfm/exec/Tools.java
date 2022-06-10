@@ -15,7 +15,6 @@ public class Tools {
     }
 
     public static String makeDirectory(@NotNull String baseDir, @Nullable String packg) {
-        if (packg == null) return null;
         File base = new File(baseDir);
         if (!base.exists()) {
             log.warn("Base Direcory <{}}> does not exist, creating", baseDir);
@@ -23,6 +22,7 @@ public class Tools {
                 throw new ClassDefineException("Error creating Base Direcory <" + baseDir + ">");
         }
         if (!base.isDirectory()) throw new ClassDefineException("Base Direcory <" + baseDir + "> is not a Direcory");
+        if (packg == null) return null;
         StringTokenizer st = new StringTokenizer(packg, ".");
         String cwd = baseDir;
         while (st.hasMoreElements()) {

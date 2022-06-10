@@ -10,6 +10,7 @@ import io.github.epi155.recfm.lang.ValidateField;
 import io.github.epi155.recfm.type.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,7 +78,7 @@ public class ContextScala extends LanguageContext implements IndentAble {
     }
 
     @Override
-    public void copyTemplate(ClassLoader classLoader, String utilDirectory, String utilPackage) {
+    public void copyTemplate(ClassLoader classLoader, @NotNull String utilDirectory, @NotNull String utilPackage) {
         Templates.copy(classLoader, utilDirectory, utilPackage);
     }
 

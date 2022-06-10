@@ -2,14 +2,15 @@ package io.github.epi155.recfm.java;
 
 import io.github.epi155.recfm.type.ClassDefineException;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.util.Objects;
 
 @Slf4j
 public class Templates {
+    private Templates() {
+    }
+
     private static final String[] models = {
         "FieldValidateHandler",
         "FixBasic",
@@ -21,8 +22,7 @@ public class Templates {
         "ValidateError"
     };
 
-    public static void copy(ClassLoader cl, String cwd, @Nullable String packg) {
-        if (packg == null) return;
+    public static void copy(ClassLoader cl, String cwd, String packg) {
         for (String model : models) {
             String source = "models/java/" + model + ".java";
             File target = new File(cwd + File.separator + model + ".java");
@@ -31,7 +31,7 @@ public class Templates {
         }
     }
 
-    private static void copyModel(ClassLoader cl, String source, File target, @NotNull String packg) {
+    private static void copyModel(ClassLoader cl, String source, File target, String packg) {
         try (
             PrintWriter pw = new PrintWriter(target);
             InputStream is = cl.getResourceAsStream(source);

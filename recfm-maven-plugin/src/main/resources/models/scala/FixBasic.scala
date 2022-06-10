@@ -1,4 +1,3 @@
-
 trait FixBasic {
   def validate(handler: FieldValidateHandler): Boolean
 

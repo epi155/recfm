@@ -10,7 +10,7 @@ function modelSync() {
     for f in $source/*
     do
       bn=$(basename "$f")
-      sed -e '1,1d' < "$f" > "$target/$bn"
+      sed -e '1,2d' < "$f" > "$target/$bn"
     done
 }
 

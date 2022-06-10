@@ -1,4 +1,3 @@
-
 object FixError {
   @SerialVersionUID(1L)
   class FieldOverFlowException(s: String) extends RuntimeException(s) {

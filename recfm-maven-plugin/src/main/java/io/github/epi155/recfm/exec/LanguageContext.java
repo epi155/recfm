@@ -6,6 +6,7 @@ import io.github.epi155.recfm.lang.ValidateField;
 import io.github.epi155.recfm.type.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -139,6 +140,6 @@ public abstract class LanguageContext {
 
     protected abstract ValidateField validateField(PrintWriter pw, String name, Defaults defaults);
 
-    public abstract void copyTemplate(ClassLoader classLoader, String utilDirectory, String utilPackage);
+    public abstract void copyTemplate(ClassLoader classLoader, @NotNull String utilDirectory, @NotNull String utilPackage);
 
 }
