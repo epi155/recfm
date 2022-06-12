@@ -15,6 +15,7 @@ class UseExampleTest extends AnyFunSuite {
   }
 
   test("dump") {
+    println("dump")
     val b280 = B280v2xReq.decode("123")
     b280.transactionArea.cdTransazione = "IITB"
     b280.transactionArea.esitoAgg = "0"
@@ -32,6 +33,7 @@ class UseExampleTest extends AnyFunSuite {
   }
 
   test("testAnag-Ascii") {
+    println("ascii")
     val anag = new FooAnag
     assertThrows[FixError.NotAsciiException] { // Result type: Assertion
       anag.taxCode = "LNÑFRC50A01F501X"
@@ -39,6 +41,7 @@ class UseExampleTest extends AnyFunSuite {
     println(anag)
   }
   test("testAnag-Latin") {
+    println("latin")
     val anag = new FooAnag
     assertThrows[FixError.NotLatinException] { // Result type: Assertion
       anag.firstName = "Franç€sco"
@@ -46,6 +49,7 @@ class UseExampleTest extends AnyFunSuite {
     println(anag)
   }
   test("testAnag-Valid") {
+    println("valid")
     val anag = new FooAnag
     assertThrows[FixError.NotValidException] { // Result type: Assertion
       anag.birdPlace = "Los\u2fe0Agelos"

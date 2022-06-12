@@ -51,33 +51,14 @@ abstract class FixEngine {
         return new String(rawData, offset, count);
     }
 
-    protected void setAbc(String s, int offset, int count, OverflowAction overflowAction, UnderflowAction underflowAction, char pad) {
-        if (s == null) {
-            if (underflowAction == UnderflowAction.Error)
-                throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
-            fillChar(offset, count, ' ');
-        } else if (s.length() == count)
-            setAbcAsIs(s, offset);
-        else if (s.length() < count) {
-            switch (underflowAction) {
-                case PadRight:
-                    padAbcToRight(s, offset, count, pad);
-                    break;
-                case PadLeft:
-                    padAbcToLeft(s, offset, count, pad);
-                    break;
-                case Error:
-                    throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+    protected static void testDigit(String value) {
+        if (value == null) return;
+        char[] raw = value.toCharArray();
+        for (int u = 0; u < raw.length; u++) {
+            char c = raw[u];
+            if (!('0' <= c && c <= '9')) {
+                throw new FixError.NotDigitException(c, u + 1);
             }
-        } else switch (overflowAction) {
-            case TruncRight:
-                truncAbcRight(s, offset, count);
-                break;
-            case TruncLeft:
-                truncAbcLeft(s, offset, count);
-                break;
-            case Error:
-                throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
         }
     }
 
@@ -85,45 +66,36 @@ abstract class FixEngine {
         return isBlank(s) ? null : s;
     }
 
-    private void truncAbcLeft(String s, int offset, int count) {
-        for (int u = s.length() - 1, v = offset + count - 1; v >= offset; u--, v--) {
-            rawData[v] = s.charAt(u);
-        }
-    }
-
-    private void truncAbcRight(String s, int offset, int count) {
-        for (int u = 0, v = offset; u < count; u++, v++) {
-            rawData[v] = s.charAt(u);
-        }
-    }
-
-    protected void setNum(String s, int offset, int count, OverflowAction ovfl, UnderflowAction unfl, char fill) {
-        if (s == null) {
-            if (unfl == UnderflowAction.Error)
-                throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
-            fillChar(offset, count, fill);
-        } else if (s.length() == count)
-            setNumAsIs(s, offset);
-        else if (s.length() < count) {
-            switch (unfl) {
-                case PadRight:
-                    padNumToRight(s, offset, count);
-                    break;
-                case PadLeft:
-                    padNumToLeft(s, offset, count);
-                    break;
-                case Error:
-                    throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+    protected static void testAscii(String value) {
+        if (value == null) return;
+        char[] raw = value.toCharArray();
+        for (int u = 0; u < raw.length; u++) {
+            char c = raw[u];
+            if (!(32 <= c && c <= 127)) {
+                throw new FixError.NotAsciiException(c, u + 1);
             }
-        } else switch (ovfl) {
-            case TruncRight:
-                truncNumRight(s, offset, count);
-                break;
-            case TruncLeft:
-                truncNumLeft(s, offset, count);
-                break;
-            case Error:
-                throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+        }
+    }
+
+    protected static void testLatin(String value) {
+        if (value == null) return;
+        char[] raw = value.toCharArray();
+        for (int u = 0; u < raw.length; u++) {
+            int c = (raw[u] & 0xff7f);
+            if (!(32 <= c && c <= 127)) {
+                throw new FixError.NotLatinException(c, u + 1);
+            }
+        }
+    }
+
+    protected static void testValid(String value) {
+        if (value == null) return;
+        char[] raw = value.toCharArray();
+        for (int u = 0; u < raw.length; u++) {
+            char c = raw[u];
+            if (Character.isISOControl(c) || !Character.isDefined(c)) {
+                throw new FixError.NotValidException(c, u + 1);
+            }
         }
     }
 
@@ -133,67 +105,33 @@ abstract class FixEngine {
         }
     }
 
-    private void truncNumLeft(String s, int offset, int count) {
-        for (int u = s.length() - 1, v = offset + count - 1; v >= offset; u--, v--) {
-            if (moveNum(s.charAt(u), v))
-                throw new FixError.InvalidNumberException(INVALID_NUMERIC + s + FOR_FIELD_AT + offset);
-        }
-    }
-
-    private void truncNumRight(String s, int offset, int count) {
-        for (int u = 0, v = offset; u < count; u++, v++) {
-            if (moveNum(s.charAt(u), v))
-                throw new FixError.InvalidNumberException(INVALID_NUMERIC + s + FOR_FIELD_AT + offset);
-        }
-    }
-
-    private void padNumToLeft(String s, int offset, int count) {
-        int u = s.length() - 1;
-        int v = offset + count - 1;
-        for (; u >= 0; u--, v--) {
-            if (moveNum(s.charAt(u), v))
-                throw new FixError.InvalidNumberException(INVALID_NUMERIC + s + FOR_FIELD_AT + offset);
-        }
-        for (; v >= offset; v--) {
-            rawData[v] = '0';
-        }
-    }
-
-    private void padNumToRight(String s, int offset, int count) {
-        int u = 0;
-        int v = offset;
-        for (; u < s.length(); u++, v++) {
-            if (moveNum(s.charAt(u), v))
-                throw new FixError.InvalidNumberException(INVALID_NUMERIC + s + FOR_FIELD_AT + offset);
-        }
-        for (; u < count; u++, v++) {
-            rawData[v] = '0';
-        }
-    }
-
-    private void setNumAsIs(String s, int offset) {
-        for (int u = 0, v = offset; u < s.length(); u++, v++) {
-            if (moveNum(s.charAt(u), v))
-                throw new FixError.InvalidNumberException(INVALID_NUMERIC + s + FOR_FIELD_AT + offset);
-        }
-    }
-
-    private boolean moveNum(char c, int v) {
-        if ('0' <= c && c <= '9') {
-            rawData[v] = c;
-            return false;
-        } else
-            return true;
-    }
-
-    private void padAbcToLeft(String s, int offset, int count, char c) {
-        int u = s.length() - 1;
-        int v = offset + count - 1;
-        for (; u >= 0; u--, v--) {
-            rawData[v] = s.charAt(u);
-        }
-        for (; v >= offset; v--) {
-            rawData[v] = c;
+    protected void setAbc(String s, int offset, int count, OverflowAction overflowAction, UnderflowAction underflowAction, char pad) {
+        if (s == null) {
+            if (underflowAction == UnderflowAction.Error)
+                throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
+            fillChar(offset, count, ' ');
+        } else if (s.length() == count)
+            setAsIs(s, offset);
+        else if (s.length() < count) {
+            switch (underflowAction) {
+                case PadRight:
+                    padToRight(s, offset, count, pad);
+                    break;
+                case PadLeft:
+                    padToLeft(s, offset, count, pad);
+                    break;
+                case Error:
+                    throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+            }
+        } else switch (overflowAction) {
+            case TruncRight:
+                truncRight(s, offset, count);
+                break;
+            case TruncLeft:
+                truncLeft(s, offset, count);
+                break;
+            case Error:
+                throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
         }
     }
 
@@ -203,19 +141,14 @@ abstract class FixEngine {
         }
     }
 
-    private void padAbcToRight(String s, int offset, int count, char c) {
-        int u = 0;
-        int v = offset;
-        for (; u < s.length(); u++, v++) {
+    private void truncLeft(String s, int offset, int count) {
+        for (int u = s.length() - 1, v = offset + count - 1; v >= offset; u--, v--) {
             rawData[v] = s.charAt(u);
-        }
-        for (; u < count; u++, v++) {
-            rawData[v] = c;
         }
     }
 
-    private void setAbcAsIs(String s, int offset) {
-        for (int u = 0, v = offset; u < s.length(); u++, v++) {
+    private void truncRight(String s, int offset, int count) {
+        for (int u = 0, v = offset; u < count; u++, v++) {
             rawData[v] = s.charAt(u);
         }
     }
@@ -289,6 +222,47 @@ abstract class FixEngine {
         return false;
     }
 
+    protected void setNum(String s, int offset, int count, OverflowAction ovfl, UnderflowAction unfl, char fill) {
+        if (s == null) {
+            if (unfl == UnderflowAction.Error)
+                throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
+            fillChar(offset, count, fill);
+        } else if (s.length() == count)
+            setAsIs(s, offset);
+        else if (s.length() < count) {
+            switch (unfl) {
+                case PadRight:
+                    padToRight(s, offset, count, '0');
+                    break;
+                case PadLeft:
+                    padToLeft(s, offset, count, '0');
+                    break;
+                case Error:
+                    throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+            }
+        } else switch (ovfl) {
+            case TruncRight:
+                truncRight(s, offset, count);
+                break;
+            case TruncLeft:
+                truncLeft(s, offset, count);
+                break;
+            case Error:
+                throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+        }
+    }
+
+    private void padToLeft(String s, int offset, int count, char c) {
+        int u = s.length() - 1;
+        int v = offset + count - 1;
+        for (; u >= 0; u--, v--) {
+            rawData[v] = s.charAt(u);
+        }
+        for (; v >= offset; v--) {
+            rawData[v] = c;
+        }
+    }
+
     protected boolean checkAscii(String name, int offset, int count, FieldValidateHandler handler) {
         for (int u = offset, v = 0; v < count; u++, v++) {
             char c = rawData[u];
@@ -300,14 +274,20 @@ abstract class FixEngine {
         return false;
     }
 
-    protected static void testAscii(String value) {
-        if (value == null) return;
-        char[] raw = value.toCharArray();
-        for (int u = 0; u < raw.length; u++) {
-            char c = raw[u];
-            if (!(32 <= c && c <= 127)) {
-                throw new FixError.NotAsciiException(c, u);
-            }
+    private void padToRight(String s, int offset, int count, char c) {
+        int u = 0;
+        int v = offset;
+        for (; u < s.length(); u++, v++) {
+            rawData[v] = s.charAt(u);
+        }
+        for (; u < count; u++, v++) {
+            rawData[v] = c;
+        }
+    }
+
+    private void setAsIs(String s, int offset) {
+        for (int u = 0, v = offset; u < s.length(); u++, v++) {
+            rawData[v] = s.charAt(u);
         }
     }
 
@@ -324,13 +304,12 @@ abstract class FixEngine {
         return false;
     }
 
-    protected void fill(int offset, int count, String s) {
-        if (s.length() == count)
-            setAbcAsIs(s, offset);
-        else if (s.length() < count) {
-            throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
-        } else {
-            throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+    protected void testDigit(int offset, int count) {
+        for (int u = offset, v = 0; v < count; u++, v++) {
+            char c = rawData[u];
+            if (!('0' <= c && c <= '9')) {
+                throw new FixError.NotDigitException(c, u + 1);
+            }
         }
     }
 
@@ -345,24 +324,39 @@ abstract class FixEngine {
         return false;
     }
 
-    protected static void testLatin(String value) {
-        if (value == null) return;
-        char[] raw = value.toCharArray();
-        for (int u = 0; u < raw.length; u++) {
-            int c = (raw[u] & 0xff7f);
+    protected void testAscii(int offset, int count) {
+        for (int u = offset, v = 0; v < count; u++, v++) {
+            char c = rawData[u];
             if (!(32 <= c && c <= 127)) {
-                throw new FixError.NotLatinException(c, u);
+                throw new FixError.NotAsciiException(c, u + 1);
             }
         }
     }
 
-    protected static void testValid(String value) {
-        if (value == null) return;
-        char[] raw = value.toCharArray();
-        for (int u = 0; u < raw.length; u++) {
-            char c = raw[u];
+    protected void fill(int offset, int count, String s) {
+        if (s.length() == count)
+            setAsIs(s, offset);
+        else if (s.length() < count) {
+            throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+        } else {
+            throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+        }
+    }
+
+    protected void testLatin(int offset, int count) {
+        for (int u = offset, v = 0; v < count; u++, v++) {
+            int c = (rawData[u] & 0xff7f);
+            if (!(32 <= c && c <= 127)) {
+                throw new FixError.NotLatinException(c, u + 1);
+            }
+        }
+    }
+
+    protected void testValid(int offset, int count) {
+        for (int u = offset, v = 0; v < count; u++, v++) {
+            char c = rawData[u];
             if (Character.isISOControl(c) || !Character.isDefined(c)) {
-                throw new FixError.NotValidException(c, u);
+                throw new FixError.NotValidException(c, u + 1);
             }
         }
     }

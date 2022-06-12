@@ -24,14 +24,6 @@ public class FixError {
         }
     }
 
-    public static class InvalidNumberException extends RuntimeException {
-        private static final long serialVersionUID = 1L;
-
-        public InvalidNumberException(String s) {
-            super(s);
-        }
-    }
-
     public static class RecordOverflowException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
@@ -50,29 +42,49 @@ public class FixError {
 
     public static class NotAsciiException extends SetterException {
         public NotAsciiException(char c, int u) {
-            super(String.format("Offending char: U+%04X @+%d", (int) c, u + 1));
+            super(c, u);
         }
     }
 
     private static class SetterException extends RuntimeException {
-        SetterException(String message) {
-            super(message);
+        private final String message;
+
+        SetterException(int ic, int kp) {
+            super();
             fillInStackTrace();
             List<StackTraceElement> stack = new ArrayList<>(Arrays.asList(getStackTrace()));
-            stack.remove(0);
+            StackTraceElement ste;
+            String method;
+            do {
+                ste = stack.remove(0);
+                method = ste.getMethodName();
+            } while ((!method.startsWith("get")) && (!method.startsWith("set")));
+            this.message = String.format("%s.%s, offending char U+%04x @+%d", ste.getClassName(), method, ic, kp);
+
             setStackTrace(stack.toArray(new StackTraceElement[0]));
+        }
+
+        @Override
+        public String getMessage() {
+            return message;
         }
     }
 
     public static class NotLatinException extends SetterException {
         public NotLatinException(int c, int u) {
-            super(String.format("Offending char: U+%04X @+%d", c, u + 1));
+            super(c, u);
         }
     }
 
     public static class NotValidException extends SetterException {
         public NotValidException(char c, int u) {
-            super(String.format("Offending char: U+%04X @+%d", (int) c, u + 1));
+            super(c, u);
+        }
+    }
+
+    public static class NotDigitException extends SetterException {
+        public NotDigitException(char c, int u) {
+            super(c, u);
         }
     }
 }

@@ -1,6 +1,5 @@
 import java.text.NumberFormat
 import java.util
-import scala.collection.mutable
 
 abstract class FixEngine(
                           length: Int,
@@ -32,30 +31,30 @@ abstract class FixEngine(
       if (underflowAction eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
       fillChar(offset, count, ' ')
     }
-    else if (s.length == count) setAbcAsIs(s, offset)
+    else if (s.length == count) setAsIs(s, offset)
     else if (s.length < count) underflowAction match {
       case UnderflowAction.PadRight =>
-        padAbcToRight(s, offset, count, pad)
+        padToRight(s, offset, count, pad)
 
       case UnderflowAction.PadLeft =>
-        padAbcToLeft(s, offset, count, pad)
+        padToLeft(s, offset, count, pad)
 
       case UnderflowAction.Error =>
         throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
     }
     else overflowAction match {
       case OverflowAction.TruncRight =>
-        truncAbcRight(s, offset, count)
+        truncRight(s, offset, count)
 
       case OverflowAction.TruncLeft =>
-        truncAbcLeft(s, offset, count)
+        truncLeft(s, offset, count)
 
       case OverflowAction.Error =>
         throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
     }
   }
 
-  private def truncAbcLeft(s: String, offset: Int, count: Int): Unit = {
+  private def truncLeft(s: String, offset: Int, count: Int): Unit = {
     var u = s.length - 1
     var v = offset + count - 1
     while ( {
@@ -67,7 +66,7 @@ abstract class FixEngine(
     }
   }
 
-  private def truncAbcRight(s: String, offset: Int, count: Int): Unit = {
+  private def truncRight(s: String, offset: Int, count: Int): Unit = {
     var u = 0
     var v = offset
     while ( {
@@ -79,7 +78,7 @@ abstract class FixEngine(
     }
   }
 
-  private def padAbcToLeft(s: String, offset: Int, count: Int, c: Char): Unit = {
+  private def padToLeft(s: String, offset: Int, count: Int, c: Char): Unit = {
     var u = s.length - 1
     var v = offset + count - 1
 
@@ -101,7 +100,7 @@ abstract class FixEngine(
     }
   }
 
-  private def padAbcToRight(s: String, offset: Int, count: Int, c: Char): Unit = {
+  private def padToRight(s: String, offset: Int, count: Int, c: Char): Unit = {
     var u = 0
     var v = offset
 
@@ -118,19 +117,6 @@ abstract class FixEngine(
       u < count
     }) {
       rawData(v) = c
-
-      u += 1
-      v += 1
-    }
-  }
-
-  private def setAbcAsIs(s: String, offset: Int): Unit = {
-    var u = 0
-    var v = offset
-    while ( {
-      u < s.length
-    }) {
-      rawData(v) = s.charAt(u)
 
       u += 1
       v += 1
@@ -142,26 +128,39 @@ abstract class FixEngine(
       if (unfl eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
       fillChar(offset, count, '0')
     }
-    else if (s.length == count) setNumAsIs(s, offset)
+    else if (s.length == count) setAsIs(s, offset)
     else if (s.length < count) unfl match {
       case UnderflowAction.PadRight =>
-        padNumToRight(s, offset, count)
+        padToRight(s, offset, count, '0')
 
       case UnderflowAction.PadLeft =>
-        padNumToLeft(s, offset, count)
+        padToLeft(s, offset, count, '0')
 
       case UnderflowAction.Error =>
         throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
     }
     else ovfl match {
       case OverflowAction.TruncRight =>
-        truncNumRight(s, offset, count)
+        truncRight(s, offset, count)
 
       case OverflowAction.TruncLeft =>
-        truncNumLeft(s, offset, count)
+        truncLeft(s, offset, count)
 
       case OverflowAction.Error =>
         throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    }
+  }
+
+  protected def testAscii(offset: Int, count: Int): Unit = {
+    var u = offset
+    var v = 0
+    while ( {
+      v < count
+    }) {
+      val c = rawData(u)
+      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
+      u += 1
+      v += 1
     }
   }
 
@@ -172,96 +171,6 @@ abstract class FixEngine(
       u < count
     }) {
       rawData(v) = fill
-
-      u += 1
-      v += 1
-    }
-  }
-
-  private def truncNumLeft(s: String, offset: Int, count: Int): Unit = {
-    var u = s.length - 1
-    var v = offset + count - 1
-    while ( {
-      v >= offset
-    }) {
-      if (moveNum(s.charAt(u), v)) throw new FixError.InvalidNumberException(FixEngine.INVALID_NUMERIC + s + FixEngine.FOR_FIELD_AT + offset)
-
-      u -= 1
-      v -= 1
-    }
-  }
-
-  private def truncNumRight(s: String, offset: Int, count: Int): Unit = {
-    var u = 0
-    var v = offset
-    while ( {
-      u < count
-    }) {
-      if (moveNum(s.charAt(u), v)) throw new FixError.InvalidNumberException(FixEngine.INVALID_NUMERIC + s + FixEngine.FOR_FIELD_AT + offset)
-
-      u += 1
-      v += 1
-    }
-  }
-
-  private def padNumToLeft(s: String, offset: Int, count: Int): Unit = {
-    var u = s.length - 1
-    var v = offset + count - 1
-
-    while ( {
-      u >= 0
-    }) {
-      if (moveNum(s.charAt(u), v)) throw new FixError.InvalidNumberException(FixEngine.INVALID_NUMERIC + s + FixEngine.FOR_FIELD_AT + offset)
-
-      u -= 1
-      v -= 1
-    }
-
-    while ( {
-      v >= offset
-    }) {
-      rawData(v) = '0'
-
-      v -= 1
-    }
-  }
-
-  private def padNumToRight(s: String, offset: Int, count: Int): Unit = {
-    var u = 0
-    var v = offset
-
-    while ( {
-      u < s.length
-    }) {
-      if (moveNum(s.charAt(u), v)) throw new FixError.InvalidNumberException(FixEngine.INVALID_NUMERIC + s + FixEngine.FOR_FIELD_AT + offset)
-
-      u += 1
-      v += 1
-    }
-
-    while ( {
-      u < count
-    }) {
-      rawData(v) = '0'
-
-      u += 1
-      v += 1
-    }
-  }
-
-  private def moveNum(c: Char, v: Int) = if ('0' <= c && c <= '9') {
-    rawData(v) = c
-    false
-  }
-  else true
-
-  private def setNumAsIs(s: String, offset: Int): Unit = {
-    var u = 0
-    var v = offset
-    while ( {
-      u < s.length
-    }) {
-      if (moveNum(s.charAt(u), v)) throw new FixError.InvalidNumberException(FixEngine.INVALID_NUMERIC + s + FixEngine.FOR_FIELD_AT + offset)
 
       u += 1
       v += 1
@@ -328,12 +237,40 @@ abstract class FixEngine(
     false
   }
 
+  protected def testDigit(offset: Int, count: Int): Unit = {
+    var u = offset
+    var v = 0
+    while ( {
+      v < count
+    }) {
+      val c = rawData(u)
+      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u)
+      u += 1
+      v += 1
+    }
+  }
+
   protected def testAscii(value: String): Unit = {
     if (value == null) return
     val raw = value.toCharArray
     for (u <- 0 until raw.length) {
       val c = raw(u)
       if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
+    }
+  }
+
+  protected def fill(offset: Int, count: Int, s: String): Unit = {
+    if (s.length == count) setAsIs(s, offset)
+    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+  }
+
+  protected def testDigit(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u)
     }
   }
 
@@ -354,10 +291,17 @@ abstract class FixEngine(
     false
   }
 
-  protected def fill(offset: Int, count: Int, s: String): Unit = {
-    if (s.length == count) setAbcAsIs(s, offset)
-    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+  private def setAsIs(s: String, offset: Int): Unit = {
+    var u = 0
+    var v = offset
+    while ( {
+      u < s.length
+    }) {
+      rawData(v) = s.charAt(u)
+
+      u += 1
+      v += 1
+    }
   }
 
   protected def checkLatin(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
@@ -376,6 +320,19 @@ abstract class FixEngine(
       v += 1
     }
     false
+  }
+
+  protected def testLatin(offset: Int, count: Int): Unit = {
+    var u = offset
+    var v = 0
+    while ( {
+      v < count
+    }) {
+      val c = rawData(u) & 0xff7f
+      if (!(32 <= c && c <= 127)) throw new FixError.NotLatinException(c, u)
+      u += 1
+      v += 1
+    }
   }
 
   protected def testLatin(value: String): Unit = {
@@ -405,6 +362,19 @@ abstract class FixEngine(
     false
   }
 
+  protected def testValid(offset: Int, count: Int): Unit = {
+    var u = offset
+    var v = 0
+    while ( {
+      v < count
+    }) {
+      val c = rawData(u)
+      if (Character.isISOControl(c) || !Character.isDefined(c)) throw new FixError.NotValidException(c, u)
+      u += 1
+      v += 1
+    }
+  }
+
   protected def testValid(value: String): Unit = {
     if (value == null) return
     val raw = value.toCharArray
@@ -415,7 +385,7 @@ abstract class FixEngine(
   }
 
   protected def dump(offset: Int, count: Int): String = {
-    val sb = new mutable.StringBuilder
+    val sb = new scala.collection.mutable.StringBuilder
     for (k <- 0 until count) {
       var c = rawData(offset + k)
       if (c <= 32) c = (0x2400 + c).toChar

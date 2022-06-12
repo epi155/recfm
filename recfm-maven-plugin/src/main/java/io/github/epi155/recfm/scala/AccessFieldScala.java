@@ -46,8 +46,13 @@ public class AccessFieldScala extends AccessField implements IndentAble {
 
     private void useByte(FieldNum fld, String wrkName, int indent) {
         indent(pw, indent);
-        pw.printf("  final def byte%s: Int = { abc(%s, %d).toByte; }%n",
-            wrkName, pos.apply(fld.getOffset()), fld.getLength());
+        pw.printf("  final def byte%s: Byte = {%n", wrkName);
+        indent(pw, indent);
+        pw.printf("    testDigit(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("    abc(%s, %d).toByte%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("  }%n");
         normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(n: Byte): Unit = {%n", fld.getName());
@@ -56,8 +61,13 @@ public class AccessFieldScala extends AccessField implements IndentAble {
 
     private void useShort(FieldNum fld, String wrkName, int indent) {
         indent(pw, indent);
-        pw.printf("  final def short%s: Int = { abc(%s, %d).toShort; }%n",
-            wrkName, pos.apply(fld.getOffset()), fld.getLength());
+        pw.printf("  final def short%s: Short = {%n", wrkName);
+        indent(pw, indent);
+        pw.printf("    testDigit(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("    abc(%s, %d).toShort%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("  }%n");
         normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(n: Short): Unit = {%n", fld.getName());
@@ -66,8 +76,13 @@ public class AccessFieldScala extends AccessField implements IndentAble {
 
     private void useInt(FieldNum fld, String wrkName, int indent) {
         indent(pw, indent);
-        pw.printf("  final def int%s: Int = { abc(%s, %d).toInt; }%n",
-            wrkName, pos.apply(fld.getOffset()), fld.getLength());
+        pw.printf("  final def int%s: Int = {%n", wrkName);
+        indent(pw, indent);
+        pw.printf("    testDigit(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("    abc(%s, %d).toInt%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("  }%n");
         normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(n: Int): Unit = {%n", fld.getName());
@@ -76,8 +91,13 @@ public class AccessFieldScala extends AccessField implements IndentAble {
 
     private void useLong(FieldNum fld, String wrkName, int indent) {
         indent(pw, indent);
-        pw.printf("  final def long%s: Long = { abc(%s, %d).toLong; }%n",
-            wrkName, pos.apply(fld.getOffset()), fld.getLength());
+        pw.printf("  final def long%s: Long = {%n", wrkName);
+        indent(pw, indent);
+        pw.printf("    testDigit(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("    abc(%s, %d).toLong%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("  }%n");
         normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(n: Long): Unit = {%n", fld.getName());
@@ -87,7 +107,7 @@ public class AccessFieldScala extends AccessField implements IndentAble {
     private void fmtNum(FieldNum fld, int indent) {
         indent(pw, indent);
         pw.printf("    val s = pic9(%d).format(n);%n", fld.getLength());
-        setNum(fld, indent);
+        setNum(fld, indent, false);
     }
 
 //    final def totDetailRecord(): String = abc(24, 9)
@@ -97,16 +117,25 @@ public class AccessFieldScala extends AccessField implements IndentAble {
 
     private void numeric(FieldNum fld, int indent) {
         indent(pw, indent);
-        pw.printf("  final def %s: String = { abc(%s, %d); }%n",
-            fld.getName(), pos.apply(fld.getOffset()), fld.getLength());
+        pw.printf("  final def %s: String = {%n", fld.getName());
+        indent(pw, indent);
+        pw.printf("    testDigit(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("    abc(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("  }%n");
         normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
         indent(pw, indent);
-        setNum(fld, indent);
+        setNum(fld, indent, true);
     }
 
-    private void setNum(FieldNum fld, int indent) {
+    private void setNum(FieldNum fld, int indent, boolean doTest) {
+        if (doTest) {
+            indent(pw, indent);
+            pw.printf("    testDigit(s)%n");
+        }
         indent(pw, indent);
         pw.printf("    num(s, %s, %d, OverflowAction.%s, UnderflowAction.%s)%n",
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow());
@@ -122,8 +151,12 @@ public class AccessFieldScala extends AccessField implements IndentAble {
     @Override
     protected void createMethodsAbc(FieldAbc fld, int indent, GenerateArgs ga) {
         indent(pw, indent);
-        pw.printf("  final def %s: String = { abc(%s, %d); }%n",
-            fld.getName(), pos.apply(fld.getOffset()), fld.getLength());
+        pw.printf("  final def %s: String = {%n", fld.getName());
+        if (ga.check) chkGetter(pw, fld, indent);
+        indent(pw, indent);
+        pw.printf("    abc(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("  }%n");
         normalizeAbc(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
@@ -133,6 +166,25 @@ public class AccessFieldScala extends AccessField implements IndentAble {
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow(), fld.getPadChar());
         indent(pw, indent);
         pw.printf("  }%n");
+    }
+
+    private void chkGetter(PrintWriter pw, FieldAbc fld, int indent) {
+        switch (fld.getCheck()) {
+            case None:
+                break;
+            case Ascii:
+                indent(pw, indent);
+                pw.printf("    testAscii(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+                break;
+            case Latin1:
+                indent(pw, indent);
+                pw.printf("    testLatin(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+                break;
+            case Valid:
+                indent(pw, indent);
+                pw.printf("    testValid(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+                break;
+        }
     }
 
     private void chkSetter(PrintWriter pw, FieldAbc fld, int indent) {

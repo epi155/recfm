@@ -3,9 +3,12 @@ package com.example.testj;
 import com.example.sysj.cams.online.B280v2xReq;
 import com.example.sysj.file.FooAnag;
 import com.example.sysj.file.FooResp;
+import io.github.epi155.recfm.java.FixError;
 import lombok.val;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.nio.CharBuffer;
 
 class TestUseExample {
     @Test
@@ -31,11 +34,28 @@ class TestUseExample {
     @Test
     void test03() {
         val anag = new FooAnag();
-        anag.setFirstName("Françisco");
-        anag.setLastName("La Niña");
-        anag.setBirdPlace("Los\uF3A2Agelos");
-//        anag.setTaxCode("LNÑFRC50A01F501X");
-//        anag.setWeightKg("cento");
+        Assertions.assertThrows(FixError.NotValidException.class, () -> {
+            anag.setFirstName("Françisco");
+            anag.setLastName("La Niña");
+            anag.setBirdPlace("Los\u2fe0Agelos");
+        });
+        Assertions.assertThrows(FixError.NotAsciiException.class, () -> {
+            anag.setTaxCode("LNÑFRC50A01F501X");
+        });
+        Assertions.assertThrows(FixError.NotDigitException.class, () -> {
+            anag.setWeightKg("6ce");
+        });
+//        anag.setWeightKg("6ce");
         System.out.println(anag);
+    }
+
+    @Test
+    void test04() {
+        val raw = CharBuffer.allocate(FooResp.LRECL).toString();
+        val resp = FooAnag.decode(raw);
+        Assertions.assertThrows(FixError.NotLatinException.class, () -> {
+            //resp.getFirstName();
+            resp.getLastName();
+        });
     }
 }
