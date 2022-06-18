@@ -103,11 +103,11 @@ abstract class FixEngine {
         }
     }
 
-    protected void setAbc(String s, int offset, int count, OverflowAction overflowAction, UnderflowAction underflowAction, char pad) {
+    protected void setAbc(String s, int offset, int count, OverflowAction overflowAction, UnderflowAction underflowAction, char pad, char init) {
         if (s == null) {
             if (underflowAction == UnderflowAction.Error)
                 throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
-            fillChar(offset, count, ' ');
+            fillChar(offset, count, init);
         } else if (s.length() == count)
             setAsIs(s, offset);
         else if (s.length() < count) {

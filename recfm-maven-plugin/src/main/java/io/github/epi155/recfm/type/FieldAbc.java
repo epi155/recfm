@@ -8,4 +8,9 @@ import lombok.EqualsAndHashCode;
 public class FieldAbc extends SettableField implements IndentAble {
     private char padChar = ' ';
     private CheckChar check;
+
+    @Override
+    public AlignMode align() {
+        return AlignMode.Right;
+    }
 }

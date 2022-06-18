@@ -52,11 +52,7 @@ class ValidateFieldJava extends ValidateField {
     protected void validateNum(FieldNum fld, int w, int bias, boolean isFirst) {
         if (fld.isRedefines()) return;
         String prefix = prefixOf(isFirst);
-        if (fld.getSpace() == SpaceMan.Deny) {
-            pw.printf("%s checkDigit(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-        } else {
-            pw.printf("%s checkDigSp(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-        }
+        pw.printf("%s checkDigSp(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
     }
 
     protected void validateAbc(FieldAbc fld, int w, int bias, boolean isFirst) {

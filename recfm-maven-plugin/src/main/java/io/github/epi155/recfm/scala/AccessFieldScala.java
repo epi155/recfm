@@ -36,12 +36,10 @@ public class AccessFieldScala extends AccessField implements IndentAble {
             if (fld.getLength() > 19)
                 log.warn("Field {} too large {}-digits for numeric access", fld.getName(), fld.getLength());
             else if (fld.getLength() > 9) useLong(fld, wrkName, indent);    // 10..19
-            else useInt(fld, wrkName, indent);     // ..9
-//            else if (fld.getLength() > 4) useInt(fld, wrkName, indent);     // 5..9
-//            else if (fld.getLength() > 2) useShort(fld, wrkName, indent);   // 3..4
-//            else useByte(fld, wrkName, indent);  // ..2
+            else if (fld.getLength() > 4 || ga.align == 4) useInt(fld, wrkName, indent);     // 5..9
+            else if (fld.getLength() > 2 || ga.align == 2) useShort(fld, wrkName, indent);   // 3..4
+            else useByte(fld, wrkName, indent);  // ..2
         }
-//        pw.println();
     }
 
     private void useByte(FieldNum fld, String wrkName, int indent) {
@@ -53,7 +51,6 @@ public class AccessFieldScala extends AccessField implements IndentAble {
         pw.printf("    abc(%s, %d).toByte%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("  }%n");
-        normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(n: Byte): Unit = {%n", fld.getName());
         fmtNum(fld, indent);
@@ -68,7 +65,6 @@ public class AccessFieldScala extends AccessField implements IndentAble {
         pw.printf("    abc(%s, %d).toShort%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("  }%n");
-        normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(n: Short): Unit = {%n", fld.getName());
         fmtNum(fld, indent);
@@ -83,7 +79,6 @@ public class AccessFieldScala extends AccessField implements IndentAble {
         pw.printf("    abc(%s, %d).toInt%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("  }%n");
-        normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(n: Int): Unit = {%n", fld.getName());
         fmtNum(fld, indent);
@@ -98,7 +93,6 @@ public class AccessFieldScala extends AccessField implements IndentAble {
         pw.printf("    abc(%s, %d).toLong%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("  }%n");
-        normalizeNum(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(n: Long): Unit = {%n", fld.getName());
         fmtNum(fld, indent);
@@ -124,7 +118,7 @@ public class AccessFieldScala extends AccessField implements IndentAble {
         pw.printf("    abc(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("  }%n");
-        normalizeNum(fld);
+        defaultOnNull(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
         indent(pw, indent);
@@ -137,8 +131,9 @@ public class AccessFieldScala extends AccessField implements IndentAble {
             pw.printf("    testDigit(s)%n");
         }
         indent(pw, indent);
+        val align = fld.align();
         pw.printf("    num(s, %s, %d, OverflowAction.%s, UnderflowAction.%s)%n",
-            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow());
+            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align));
         indent(pw, indent);
         pw.printf("  }%n");
     }
@@ -157,13 +152,14 @@ public class AccessFieldScala extends AccessField implements IndentAble {
         pw.printf("    abc(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("  }%n");
-        normalizeAbc(fld);
+        defaultOnNull(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
         if (ga.setCheck) chkSetter(pw, fld, indent);
         indent(pw, indent);
-        pw.printf("    abc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c')%n",
-            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow(), fld.getPadChar());
+        val align = fld.align();
+        pw.printf("    abc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', ' ')%n",
+            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar());
         indent(pw, indent);
         pw.printf("  }%n");
     }

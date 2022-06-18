@@ -7,8 +7,6 @@ abstract class FixEngine {
     private static final String FIELD_AT = "Field @";
     private static final String EXPECTED = " expected ";
     private static final String CHARS_FOUND = " chars , found ";
-    private static final String FOR_FIELD_AT = "> for field @";
-    private static final String INVALID_NUMERIC = "Invalid numeric value <";
     private static final String RECORD_LENGTH = "Record length ";
     protected final char[] rawData;
 
@@ -105,11 +103,11 @@ abstract class FixEngine {
         }
     }
 
-    protected void setAbc(String s, int offset, int count, OverflowAction overflowAction, UnderflowAction underflowAction, char pad) {
+    protected void setAbc(String s, int offset, int count, OverflowAction overflowAction, UnderflowAction underflowAction, char pad, char init) {
         if (s == null) {
             if (underflowAction == UnderflowAction.Error)
                 throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
-            fillChar(offset, count, ' ');
+            fillChar(offset, count, init);
         } else if (s.length() == count)
             setAsIs(s, offset);
         else if (s.length() < count) {

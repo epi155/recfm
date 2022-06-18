@@ -11,6 +11,8 @@ public abstract class SettableField extends NamedField {
     private OverflowAction onOverflow;
     private UnderflowAction onUnderflow;
 
+    public abstract AlignMode align();
+
     public String pad(int w) {
         return pad(getName().length(), w);
     }

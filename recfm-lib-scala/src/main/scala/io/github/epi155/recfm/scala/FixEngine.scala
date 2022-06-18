@@ -28,10 +28,10 @@ abstract class FixEngine(
 
   protected def abc(offset: Int, count: Int) = new String(rawData, offset, count)
 
-  protected def abc(s: String, offset: Int, count: Int, overflowAction: OverflowAction.OverflowAction, underflowAction: UnderflowAction.UnderflowAction, pad: Char): Unit = {
+  protected def abc(s: String, offset: Int, count: Int, overflowAction: OverflowAction.OverflowAction, underflowAction: UnderflowAction.UnderflowAction, pad: Char, init: Char): Unit = {
     if (s == null) {
       if (underflowAction eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
-      fillChar(offset, count, ' ')
+      fillChar(offset, count, init)
     }
     else if (s.length == count) setAsIs(s, offset)
     else if (s.length < count) underflowAction match {

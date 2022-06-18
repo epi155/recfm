@@ -38,11 +38,7 @@ class InitializeFieldJava extends InitializeField {
 
     protected void initializeNum(FieldNum fld, int bias) {
         if (fld.isRedefines()) return;
-        if (fld.getSpace() == SpaceMan.Init) {
-            pw.printf("        fill(%5d, %4d, ' ');%n", fld.getOffset() - bias, fld.getLength());
-        } else {
-            pw.printf("        fill(%5d, %4d, '0');%n", fld.getOffset() - bias, fld.getLength());
-        }
+        pw.printf("        fill(%5d, %4d, '0');%n", fld.getOffset() - bias, fld.getLength());
     }
 
     protected void initializeAbc(FieldAbc fld, int bias) {

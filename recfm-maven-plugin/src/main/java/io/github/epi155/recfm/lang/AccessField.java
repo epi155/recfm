@@ -60,22 +60,12 @@ public abstract class AccessField {
     protected abstract void createMethodsAbc(FieldAbc fld, int indent, GenerateArgs ga);
 
     /**
-     * Set system default on numeric field overflow/underflow
+     * Set system default on field overflow/underflow
      *
-     * @param fld numeric field
+     * @param fld field
      */
-    protected void normalizeNum(@NotNull FieldNum fld) {
-        if (fld.getOnOverflow() == null) fld.setOnOverflow(OverflowAction.TruncLeft);
-        if (fld.getOnUnderflow() == null) fld.setOnUnderflow(UnderflowAction.PadLeft);
-    }
-
-    /**
-     * Set system default on alphanumeric field overflow/underflow
-     *
-     * @param fld alphanumeric field
-     */
-    protected void normalizeAbc(@NotNull FieldAbc fld) {
-        if (fld.getOnOverflow() == null) fld.setOnOverflow(OverflowAction.TruncRight);
-        if (fld.getOnUnderflow() == null) fld.setOnUnderflow(UnderflowAction.PadRight);
+    protected void defaultOnNull(@NotNull SettableField fld) {
+        if (fld.getOnOverflow() == null) fld.setOnOverflow(OverflowAction.Trunc);
+        if (fld.getOnUnderflow() == null) fld.setOnUnderflow(UnderflowAction.Pad);
     }
 }

@@ -9,5 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FieldNum extends SettableField implements IndentAble {
     private boolean numericAccess;
-    private SpaceMan space = SpaceMan.Deny;
+
+    @Override
+    public AlignMode align() {
+        return AlignMode.Left;
+    }
 }

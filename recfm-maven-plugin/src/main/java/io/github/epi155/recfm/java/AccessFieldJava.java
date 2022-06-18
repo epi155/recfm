@@ -6,7 +6,6 @@ import io.github.epi155.recfm.lang.AccessField;
 import io.github.epi155.recfm.type.FieldAbc;
 import io.github.epi155.recfm.type.FieldNum;
 import io.github.epi155.recfm.type.IndentAble;
-import io.github.epi155.recfm.type.SpaceMan;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +60,6 @@ class AccessFieldJava extends AccessField implements IndentAble {
         pw.printf("        return Byte.parseByte(getAbc(%s, %d), 10);%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("    }%n");
-        normalizeNum(fld);
         if (doc) {
             indent(pw, indent);
             pw.printf("    /**%n");
@@ -96,7 +94,6 @@ class AccessFieldJava extends AccessField implements IndentAble {
         pw.printf("        return Short.parseShort(getAbc(%s, %d), 10);%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("    }%n");
-        normalizeNum(fld);
         if (doc) {
             indent(pw, indent);
             pw.printf("    /**%n");
@@ -131,7 +128,6 @@ class AccessFieldJava extends AccessField implements IndentAble {
         pw.printf("        return Integer.parseInt(getAbc(%s, %d), 10);%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("    }%n");
-        normalizeNum(fld);
         if (doc) {
             indent(pw, indent);
             pw.printf("    /**%n");
@@ -166,7 +162,6 @@ class AccessFieldJava extends AccessField implements IndentAble {
         pw.printf("        return Long.parseLong(getAbc(%s, %d), 10);%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("    }%n");
-        normalizeNum(fld);
         if (doc) {
             indent(pw, indent);
             pw.printf("    /**%n");
@@ -202,16 +197,12 @@ class AccessFieldJava extends AccessField implements IndentAble {
         indent(pw, indent);
         pw.printf("    public String get%s() {%n", wrkName);
         indent(pw, indent);
-        if (fld.getSpace() == SpaceMan.Deny) {
-            pw.printf("        testDigit(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
-            indent(pw, indent);
-            pw.printf("        return getAbc(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
-        } else {
-            pw.printf("        return spaceNull(getAbc(%s, %d));%n", pos.apply(fld.getOffset()), fld.getLength());
-        }
+        pw.printf("        testDigit(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("        return getAbc(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("    }%n");
-        normalizeNum(fld);
+        defaultOnNull(fld);
         indent(pw, indent);
         if (doc) {
             indent(pw, indent);
@@ -229,17 +220,13 @@ class AccessFieldJava extends AccessField implements IndentAble {
 
     private void setNum(FieldNum fld, int indent, boolean doTest) {
         indent(pw, indent);
-        if (fld.getSpace() == SpaceMan.Init) {
-            pw.printf("        setNum(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, ' ');%n",
-                pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow());
-        } else {
-            if (doTest) {
-                indent(pw, indent);
-                pw.printf("        testDigit(s);%n");
-            }
-            pw.printf("        setNum(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '0');%n",
-                pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow());
+        if (doTest) {
+            indent(pw, indent);
+            pw.printf("        testDigit(s);%n");
         }
+        val align = fld.align();
+        pw.printf("        setNum(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '0');%n",
+            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align));
         indent(pw, indent);
         pw.printf("    }%n");
     }
@@ -259,14 +246,15 @@ class AccessFieldJava extends AccessField implements IndentAble {
         pw.printf("        return getAbc(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
         pw.printf("    }%n");
-        normalizeAbc(fld);
+        defaultOnNull(fld);
         if (ga.doc) docSetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("    public void set%s(String s) {%n", wrkName);
         if (ga.setCheck) chkSetter(pw, fld, indent);
         indent(pw, indent);
-        pw.printf("        setAbc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c');%n",
-            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow(), fld.getPadChar());
+        val align = fld.align();
+        pw.printf("        setAbc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', ' ');%n",
+            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar());
         indent(pw, indent);
         pw.printf("    }%n");
     }
