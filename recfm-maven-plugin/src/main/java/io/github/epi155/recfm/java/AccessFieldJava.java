@@ -254,7 +254,7 @@ class AccessFieldJava extends AccessField implements IndentAble {
         if (ga.doc) docGetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("    public String get%s() {%n", wrkName);
-        if (ga.check) chkGetter(pw, fld, indent);
+        if (ga.getCheck) chkGetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("        return getAbc(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
@@ -263,7 +263,7 @@ class AccessFieldJava extends AccessField implements IndentAble {
         if (ga.doc) docSetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("    public void set%s(String s) {%n", wrkName);
-        if (ga.check) chkSetter(pw, fld, indent);
+        if (ga.setCheck) chkSetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("        setAbc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c');%n",
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow(), fld.getPadChar());

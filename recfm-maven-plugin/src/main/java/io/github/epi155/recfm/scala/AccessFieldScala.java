@@ -152,7 +152,7 @@ public class AccessFieldScala extends AccessField implements IndentAble {
     protected void createMethodsAbc(FieldAbc fld, int indent, GenerateArgs ga) {
         indent(pw, indent);
         pw.printf("  final def %s: String = {%n", fld.getName());
-        if (ga.check) chkGetter(pw, fld, indent);
+        if (ga.getCheck) chkGetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("    abc(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
         indent(pw, indent);
@@ -160,7 +160,7 @@ public class AccessFieldScala extends AccessField implements IndentAble {
         normalizeAbc(fld);
         indent(pw, indent);
         pw.printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
-        if (ga.check) chkSetter(pw, fld, indent);
+        if (ga.setCheck) chkSetter(pw, fld, indent);
         indent(pw, indent);
         pw.printf("    abc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c')%n",
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow(), fld.getOnUnderflow(), fld.getPadChar());

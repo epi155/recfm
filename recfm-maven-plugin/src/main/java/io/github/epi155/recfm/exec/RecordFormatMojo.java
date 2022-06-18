@@ -47,6 +47,10 @@ public class RecordFormatMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "false", required = true)
     private boolean doc;
+    @Parameter(defaultValue = "true", required = true)
+    private boolean enforceGetter;
+    @Parameter(defaultValue = "true", required = true)
+    private boolean enforceSetter;
 
     @Parameter(required = true)
     private String[] settings;
@@ -101,7 +105,8 @@ public class RecordFormatMojo extends AbstractMojo {
             .utilPackage(outputUtilPackage)
             .align(align)
             .doc(doc)
-            .check(true)
+            .setCheck(enforceSetter)
+            .getCheck(enforceGetter)
             .build();
 
         getLog().info("Settings directory: " + settingsDirectory);

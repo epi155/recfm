@@ -14,5 +14,7 @@ public class GenerateArgs {
     @Builder.Default
     public final boolean doc = false;
     @Builder.Default
-    public final boolean check = true;
+    public final boolean getCheck = true;
+    @Builder.Default
+    public final boolean setCheck = true;
 }
