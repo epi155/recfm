@@ -18,8 +18,8 @@ public abstract class ValidateField {
             validateAbc((FieldAbc) fld, padWidth, bias, firstStatement.getAndSet(false));
         } else if (fld instanceof FieldNum) {
             validateNum((FieldNum) fld, padWidth, bias, firstStatement.getAndSet(false));
-        } else if (fld instanceof FieldUser) {
-            validateUser((FieldUser) fld, padWidth, bias, firstStatement.getAndSet(false));
+        } else if (fld instanceof FieldCustom) {
+            validateUser((FieldCustom) fld, padWidth, bias, firstStatement.getAndSet(false));
         } else if (fld instanceof FieldConstant) {
             validateVal((FieldConstant) fld, padWidth, bias, firstStatement.getAndSet(false));
         } else if (fld instanceof FieldFiller) {
@@ -31,7 +31,7 @@ public abstract class ValidateField {
         }
     }
 
-    protected abstract void validateUser(FieldUser fld, int padWidth, int bias, boolean andSet);
+    protected abstract void validateUser(FieldCustom fld, int padWidth, int bias, boolean andSet);
 
     protected abstract void validateGrp(FieldGroup fld, int padWidth, int bias, AtomicBoolean isFirst);
 

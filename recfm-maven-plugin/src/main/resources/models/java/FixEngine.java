@@ -367,6 +367,7 @@ abstract class FixEngine {
         }
         return false;
     }
+
     protected void testDigitBlank(String value) {
         if (value == null) return;
         char[] raw = value.toCharArray();

@@ -30,4 +30,6 @@ object FixError {
     setStackTrace(getStackTrace.drop(deep))
   }
 
+  class NotBlankException(c: Char, u: Int) extends FixError.SetterException(String.format("Offending char: U+%04X @+%d", c.toInt, u + 1), 3) {
+  }
 }

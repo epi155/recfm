@@ -5,7 +5,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FieldUser extends SettableField implements IndentAble {
+public class FieldCustom extends SettableField implements IndentAble {
     private char padChar = ' ';
     private char initChar = ' ';
     private CheckUser check = CheckUser.Ascii;

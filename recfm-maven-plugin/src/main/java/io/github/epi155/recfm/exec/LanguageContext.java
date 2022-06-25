@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class LanguageContext {
     protected static final String VERSION = Optional.ofNullable(LanguageContext.class.getPackage().getImplementationVersion()).orElse("N/A");
+    private static final String CONSTANT = "<Constant>";
 
     public static String getWrkName(String name) {
         val fst = String.valueOf(Character.toUpperCase(name.charAt(0)));
@@ -58,12 +59,12 @@ public abstract class LanguageContext {
                 FieldNum fn = (FieldNum) field;
                 if (fn.isRedefines()) continue;
                 lst.add(dump.newPicture(fn.getName(), fn.getOffset(), fn.getLength(), "9"));
-            } else if (field instanceof FieldUser) {
-                FieldUser fn = (FieldUser) field;
+            } else if (field instanceof FieldCustom) {
+                FieldCustom fn = (FieldCustom) field;
                 if (fn.isRedefines()) continue;
                 lst.add(dump.newPicture(fn.getName(), fn.getOffset(), fn.getLength(), "X"));
             } else if (field instanceof FieldConstant) {
-                lst.add(dump.newPicture("<Constant>", field.getOffset(), field.getLength(), "X"));
+                lst.add(dump.newPicture(CONSTANT, field.getOffset(), field.getLength(), "X"));
             } else if (field instanceof FieldOccurs) {
                 FieldOccurs fo = (FieldOccurs) field;
                 if (fo.isRedefines()) continue;
@@ -84,24 +85,24 @@ public abstract class LanguageContext {
         for (int k = 1, bias = initBias; k <= times; k++, bias += size) {
             String px = prefix + "[" + k + "].";
             for (NakedField field : fields) {
-                if (field instanceof FieldAbc) {
-                    FieldAbc fa = (FieldAbc) field;
-                    if (fa.isRedefines()) continue;
-                    lst.add(dump.newPicture(px + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
-                } else if (field instanceof FieldNum) {
-                    FieldNum fn = (FieldNum) field;
-                    if (fn.isRedefines()) continue;
-                    lst.add(dump.newPicture(px + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
-                } else if (field instanceof FieldConstant) {
-                    lst.add(dump.newPicture("<Constant>", bias + field.getOffset(), field.getLength(), "X"));
-                } else if (field instanceof FieldOccurs) {
-                    FieldOccurs fo = (FieldOccurs) field;
-                    if (fo.isRedefines()) continue;
-                    lst.addAll(occursDump(px + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
-                } else if (field instanceof FieldGroup) {
-                    FieldGroup fg = (FieldGroup) field;
-                    if (fg.isRedefines()) continue;
-                    lst.addAll(groupDump(px + fg.getName(), fg.getFields(), bias));
+                if (field instanceof FieldConstant) {
+                    lst.add(dump.newPicture(CONSTANT, bias + field.getOffset(), field.getLength(), "X"));
+                } else if (field instanceof NamedField) {
+                    NamedField na = (NamedField) field;
+                    if (na.isRedefines()) continue;
+                    if (na instanceof FieldAbc) {
+                        FieldAbc fa = (FieldAbc) na;
+                        lst.add(dump.newPicture(px + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
+                    } else if (na instanceof FieldNum) {
+                        FieldNum fn = (FieldNum) na;
+                        lst.add(dump.newPicture(px + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
+                    } else if (na instanceof FieldOccurs) {
+                        FieldOccurs fo = (FieldOccurs) na;
+                        lst.addAll(occursDump(px + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
+                    } else if (na instanceof FieldGroup) {
+                        FieldGroup fg = (FieldGroup) na;
+                        lst.addAll(groupDump(px + fg.getName(), fg.getFields(), bias));
+                    }
                 }
             }
         }
@@ -113,24 +114,24 @@ public abstract class LanguageContext {
         List<DumpPicure> lst = new ArrayList<>();
 
         for (NakedField field : fields) {
-            if (field instanceof FieldAbc) {
-                FieldAbc fa = (FieldAbc) field;
-                if (fa.isRedefines()) continue;
-                lst.add(dump.newPicture(prefix + "." + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
-            } else if (field instanceof FieldNum) {
-                FieldNum fn = (FieldNum) field;
-                if (fn.isRedefines()) continue;
-                lst.add(dump.newPicture(prefix + "." + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
-            } else if (field instanceof FieldConstant) {
-                lst.add(dump.newPicture("<Constant>", bias + field.getOffset(), field.getLength(), "X"));
-            } else if (field instanceof FieldOccurs) {
-                FieldOccurs fo = (FieldOccurs) field;
-                if (fo.isRedefines()) continue;
-                lst.addAll(occursDump(prefix + "." + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
-            } else if (field instanceof FieldGroup) {
-                FieldGroup fg = (FieldGroup) field;
-                if (fg.isRedefines()) continue;
-                lst.addAll(groupDump(prefix + "." + fg.getName(), fg.getFields(), bias));
+            if (field instanceof FieldConstant) {
+                lst.add(dump.newPicture(CONSTANT, bias + field.getOffset(), field.getLength(), "X"));
+            } else if (field instanceof NamedField) {
+                NamedField na = (NamedField) field;
+                if (na.isRedefines()) continue;
+                if (na instanceof FieldAbc) {
+                    FieldAbc fa = (FieldAbc) na;
+                    lst.add(dump.newPicture(prefix + "." + fa.getName(), bias + fa.getOffset(), fa.getLength(), "X"));
+                } else if (na instanceof FieldNum) {
+                    FieldNum fn = (FieldNum) na;
+                    lst.add(dump.newPicture(prefix + "." + fn.getName(), bias + fn.getOffset(), fn.getLength(), "9"));
+                } else if (na instanceof FieldOccurs) {
+                    FieldOccurs fo = (FieldOccurs) na;
+                    lst.addAll(occursDump(prefix + "." + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
+                } else if (na instanceof  FieldGroup) {
+                    FieldGroup fg = (FieldGroup) na;
+                    lst.addAll(groupDump(prefix + "." + fg.getName(), fg.getFields(), bias));
+                }
             }
         }
         return lst;

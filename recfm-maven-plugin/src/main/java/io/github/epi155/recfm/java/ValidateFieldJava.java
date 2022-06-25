@@ -1,16 +1,29 @@
 package io.github.epi155.recfm.java;
 
+import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.lang.ValidateField;
 import io.github.epi155.recfm.type.*;
+import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@EqualsAndHashCode(callSuper = true)
 class ValidateFieldJava extends ValidateField {
+    private final ActionField<FieldAbc> delegateAbc;
+    private final ActionField<FieldNum> delegateNum;
+    private final ActionField<FieldCustom> delegateUse;
+    private final ActionField<FieldFiller> delegateFil;
+    private final ActionField<FieldConstant> delegateVal;
 
     public ValidateFieldJava(PrintWriter pw, String name, Defaults defaults) {
         super(pw, name, defaults);
+        this.delegateAbc = new JavaFieldAbc(pw, defaults);
+        this.delegateNum = new JavaFieldNum(pw);
+        this.delegateUse = new JavaFieldCustom(pw);
+        this.delegateFil = new JavaFieldFiller(pw, defaults);
+        this.delegateVal = new JavaFieldConstant(pw);
     }
 
     protected void validateGrp(@NotNull FieldGroup fld, int w, int bias, AtomicBoolean firstField) {
@@ -27,83 +40,26 @@ class ValidateFieldJava extends ValidateField {
     }
 
     protected void validateFil(FieldFiller fld, int w, int bias, boolean isFirst) {
-        String prefix = prefixOf(isFirst);
-        switch (fld.getCheck() == null ? defaults.getCheck() : fld.getCheck()) {
-            case None:
-                break;
-            case Ascii:
-                pw.printf("%s checkAscii(\"FILLER\"%s, %5d, %4d, handler);%n", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
-                break;
-            case Latin1:
-                pw.printf("%s checkLatin(\"FILLER\"%s, %5d, %4d, handler);%n", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
-                break;
-            case Valid:
-                pw.printf("%s checkValid(\"FILLER\"%s, %5d, %4d, handler);%n", prefix, fld.pad(6, w), fld.getOffset() - bias, fld.getLength());
-                break;
-        }
+        delegateFil.validate(fld, w, bias, isFirst);
     }
 
     protected void validateVal(FieldConstant fld, int w, int bias, boolean isFirst) {
-        String prefix = prefixOf(isFirst);
-        pw.printf("%s checkEqual(%s %5d, %4d, handler, VALUE_AT%dPLUS%d);%n", prefix, fld.pad(-3, w),
-            fld.getOffset() - bias, fld.getLength(), fld.getOffset(), fld.getLength());
+        delegateVal.validate(fld, w, bias, isFirst);
     }
 
     protected void validateNum(FieldNum fld, int w, int bias, boolean isFirst) {
         if (fld.isRedefines()) return;
-        String prefix = prefixOf(isFirst);
-        pw.printf("%s checkDigit(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+        delegateNum.validate(fld, w, bias, isFirst);
     }
 
     protected void validateAbc(FieldAbc fld, int w, int bias, boolean isFirst) {
         if (fld.isRedefines()) return;
-        String prefix = prefixOf(isFirst);
-        switch (fld.getCheck() == null ? defaults.getCheck() : fld.getCheck()) {
-            case None:
-                break;
-            case Ascii:
-                pw.printf("%s checkAscii(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-                break;
-            case Latin1:
-                pw.printf("%s checkLatin(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-                break;
-            case Valid:
-                pw.printf("%s checkValid(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-                break;
-        }
+        delegateAbc.validate(fld, w, bias, isFirst);
     }
 
     @Override
-    protected void validateUser(FieldUser fld, int w, int bias, boolean isFirst) {
+    protected void validateUser(FieldCustom fld, int w, int bias, boolean isFirst) {
         if (fld.isRedefines()) return;
-        String prefix = prefixOf(isFirst);
-        switch (fld.getCheck()) {
-            case None:
-                break;
-            case Ascii:
-                pw.printf("%s checkAscii(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-                break;
-            case Latin1:
-                pw.printf("%s checkLatin(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-                break;
-            case Valid:
-                pw.printf("%s checkValid(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-                break;
-            case Digit:
-                pw.printf("%s checkDigit(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-                break;
-            case DigitOrBlank:
-                pw.printf("%s checkDigitBlank(\"%s\"%s, %5d, %4d, handler);%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
-                break;
-        }
-    }
-
-
-    private String prefixOf(boolean isFirst) {
-        if (isFirst) {
-            return "        boolean error =";
-        } else {
-            return "        error |=";
-        }
+        delegateUse.validate(fld, w, bias, isFirst);
     }
 }

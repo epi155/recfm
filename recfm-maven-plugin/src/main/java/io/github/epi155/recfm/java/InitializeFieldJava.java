@@ -1,14 +1,27 @@
 package io.github.epi155.recfm.java;
 
+import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.lang.InitializeField;
 import io.github.epi155.recfm.type.*;
-import org.apache.commons.text.StringEscapeUtils;
+import lombok.EqualsAndHashCode;
 
 import java.io.PrintWriter;
 
+@EqualsAndHashCode(callSuper = true)
 class InitializeFieldJava extends InitializeField {
+    private final ActionField<FieldAbc> delegateAbc;
+    private final ActionField<FieldNum> delegateNum;
+    private final ActionField<FieldCustom> delegateUse;
+    private final ActionField<FieldFiller> delegateFil;
+    private final ActionField<FieldConstant> delegateVal;
+
     public InitializeFieldJava(PrintWriter pw, ClassDefine struct, Defaults defaults) {
         super(pw, struct, defaults);
+        this.delegateAbc = new JavaFieldAbc(pw, defaults);
+        this.delegateNum = new JavaFieldNum(pw);
+        this.delegateUse = new JavaFieldCustom(pw);
+        this.delegateFil = new JavaFieldFiller(pw, defaults);
+        this.delegateVal = new JavaFieldConstant(pw);
     }
 
     protected void initializeOcc(FieldOccurs fld, int bias) {
@@ -20,9 +33,9 @@ class InitializeFieldJava extends InitializeField {
     }
 
     @Override
-    protected void initializeUser(FieldUser fld, int bias) {
+    protected void initializeUser(FieldCustom fld, int bias) {
         if (fld.isRedefines()) return;
-        pw.printf("        fill(%5d, %4d, '%c');%n", fld.getOffset() - bias, fld.getLength(), fld.getInitChar());
+        delegateUse.initialize(fld, bias);
     }
 
     protected void initializeGrp(FieldGroup fld, int bias) {
@@ -31,24 +44,20 @@ class InitializeFieldJava extends InitializeField {
     }
 
     protected void initializeFil(FieldFiller fld, int bias) {
-        char c = fld.getFillChar() == null ? defaults.getFillChar() : fld.getFillChar();
-        pw.printf("        fill(%5d, %4d, '%s');%n",
-            fld.getOffset() - bias, fld.getLength(), StringEscapeUtils.escapeJava(String.valueOf(c)));
+        delegateFil.initialize(fld, bias);
     }
 
     protected void initializeVal(FieldConstant fld, int bias) {
-        pw.printf("        fill(%5d, %4d, VALUE_AT%dPLUS%d);%n",
-            fld.getOffset() - bias, fld.getLength(), fld.getOffset(), fld.getLength());
-
+        delegateVal.initialize(fld, bias);
     }
 
     protected void initializeNum(FieldNum fld, int bias) {
         if (fld.isRedefines()) return;
-        pw.printf("        fill(%5d, %4d, '0');%n", fld.getOffset() - bias, fld.getLength());
+        delegateNum.initialize(fld, bias);
     }
 
     protected void initializeAbc(FieldAbc fld, int bias) {
         if (fld.isRedefines()) return;
-        pw.printf("        fill(%5d, %4d, ' ');%n", fld.getOffset() - bias, fld.getLength());
+        delegateAbc.initialize(fld, bias);
     }
 }

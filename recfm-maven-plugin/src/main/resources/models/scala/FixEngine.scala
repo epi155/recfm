@@ -123,17 +123,41 @@ abstract class FixEngine(
     }
   }
 
-  protected def testAscii(offset: Int, count: Int): Unit = {
-    var u = offset
-    var v = 0
-    while ( {
-      v < count
-    }) {
-      val c = rawData(u)
-      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
-      u += 1
-      v += 1
+  protected def checkDigitBlank(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
+    var c = rawData(offset)
+    if (c == ' ') {
+      var u = offset + 1
+      var v = 1
+      while ( {
+        v < count
+      }) {
+        if (rawData(u) != ' ') {
+          handler.error(name, offset, count, u + 1, ValidateError.NotNumber)
+          return true
+        }
+
+        u += 1
+        v += 1
+      }
     }
+    else if ('0' <= c && c <= '9') {
+      var u = offset + 1
+      var v = 1
+      while ( {
+        v < count
+      }) {
+        c = rawData(u)
+        if (!('0' <= c && c <= '9')) {
+          handler.error(name, offset, count, u + 1, ValidateError.NotNumber)
+          return true
+        }
+
+        u += 1
+        v += 1
+      }
+    }
+    else return true
+    false
   }
 
   protected def num(s: String, offset: Int, count: Int, ovfl: OverflowAction.OverflowAction, unfl: UnderflowAction.UnderflowAction): Unit = {
@@ -219,6 +243,19 @@ abstract class FixEngine(
     false
   }
 
+  protected def testAscii(offset: Int, count: Int): Unit = {
+    var u = offset
+    var v = 0
+    while ( {
+      v < count
+    }) {
+      val c = rawData(u)
+      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
+      u += 1
+      v += 1
+    }
+  }
+
   protected def checkAscii(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
     var u = offset
     var v = 0
@@ -259,10 +296,46 @@ abstract class FixEngine(
     }
   }
 
-  protected def fill(offset: Int, count: Int, s: String): Unit = {
-    if (s.length == count) setAsIs(s, offset)
-    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+  protected def testDigitBlank(offset: Int, count: Int): Unit = {
+    var c = rawData(offset)
+    if (c == ' ') {
+      var u = offset + 1
+      var v = 1
+      while ( {
+        v < count
+      }) {
+        if (rawData(u) != ' ') throw new FixError.NotBlankException(c, u + 1)
+
+        u += 1
+        v += 1
+      }
+    }
+    else {
+      var u = offset
+      var v = 0
+      while ( {
+        v < count
+      }) {
+        c = rawData(u)
+        if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u + 1)
+
+        u += 1
+        v += 1
+      }
+    }
+  }
+
+  protected def testDigitBlank(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    if (raw(0) == ' ') for (u <- 1 until raw.length) {
+      val c = raw(u)
+      if (c != ' ') throw new FixError.NotBlankException(c, u + 1)
+    }
+    else for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u + 1)
+    }
   }
 
   protected def testDigit(value: String): Unit = {
@@ -272,6 +345,12 @@ abstract class FixEngine(
       val c = raw(u)
       if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u)
     }
+  }
+
+  protected def fill(offset: Int, count: Int, s: String): Unit = {
+    if (s.length == count) setAsIs(s, offset)
+    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
   }
 
   protected def checkEqual(name: String, offset: Int, count: Int, handler: FieldValidateHandler, value: String): Boolean = {

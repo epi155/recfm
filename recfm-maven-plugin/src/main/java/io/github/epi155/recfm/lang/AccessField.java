@@ -2,28 +2,15 @@ package io.github.epi155.recfm.lang;
 
 import io.github.epi155.recfm.exec.GenerateArgs;
 import io.github.epi155.recfm.type.*;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.PrintWriter;
-import java.util.function.IntFunction;
-
 /**
  * Generic class that generates the methods for accessing the fields.
  */
-@Data
 @Slf4j
 public abstract class AccessField {
-    /**
-     * output writer
-     */
-    protected final PrintWriter pw;
-    /**
-     * field offset position
-     */
-    protected final IntFunction<String> pos;
 
     /**
      * Method accessor creator
@@ -40,8 +27,8 @@ public abstract class AccessField {
             createMethodsAbc(abc, indent, ga);
         } else if (fld instanceof FieldNum) {
             createMethodsNum((FieldNum) fld, indent, ga);
-        } else if (fld instanceof FieldUser) {
-            createMethodsUser((FieldUser) fld, indent, ga);
+        } else if (fld instanceof FieldCustom) {
+            createMethodsUser((FieldCustom) fld, indent, ga);
         } else {
             log.warn("Unknown field type {}: {}", fld.getName(), fld.getClass().getSimpleName());
         }
@@ -65,7 +52,7 @@ public abstract class AccessField {
      */
     protected abstract void createMethodsAbc(FieldAbc fld, int indent, GenerateArgs ga);
 
-    protected abstract void createMethodsUser(FieldUser fld, int indent, GenerateArgs ga);
+    protected abstract void createMethodsUser(FieldCustom fld, int indent, GenerateArgs ga);
 
     /**
      * Set system default on field overflow/underflow
