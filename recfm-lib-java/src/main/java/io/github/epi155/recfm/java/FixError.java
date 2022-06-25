@@ -87,4 +87,10 @@ public class FixError {
             super(c, u);
         }
     }
+
+    public static class NotBlankException extends SetterException {
+        public NotBlankException(char c, int u) {
+            super(c, u);
+        }
+    }
 }

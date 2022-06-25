@@ -197,7 +197,7 @@ abstract class FixEngine {
         return false;
     }
 
-    protected boolean checkDigSp(String name, int offset, int count, FieldValidateHandler handler) {
+    protected boolean checkDigitBlank(String name, int offset, int count, FieldValidateHandler handler) {
         char c = rawData[offset];
         if (c == ' ') {
             for (int u = offset + 1, v = 1; v < count; u++, v++) {
@@ -369,6 +369,45 @@ abstract class FixEngine {
         }
         return false;
     }
+
+    protected void testDigitBlank(String value) {
+        if (value == null) return;
+        char[] raw = value.toCharArray();
+        if (raw[0] == ' ') {
+            for (int u = 1; u < raw.length; u++) {
+                char c = raw[u];
+                if (c != ' ') {
+                    throw new FixError.NotBlankException(c, u + 1);
+                }
+            }
+        } else {
+            for (int u = 0; u < raw.length; u++) {
+                char c = raw[u];
+                if (!('0' <= c && c <= '9')) {
+                    throw new FixError.NotDigitException(c, u + 1);
+                }
+            }
+        }
+    }
+
+    protected void testDigitBlank(int offset, int count) {
+        char c = rawData[offset];
+        if (c == ' ') {
+            for (int u = offset + 1, v = 1; v < count; u++, v++) {
+                if (rawData[u] != ' ') {
+                    throw new FixError.NotBlankException(c, u + 1);
+                }
+            }
+        } else {
+            for (int u = offset, v = 0; v < count; u++, v++) {
+                c = rawData[u];
+                if (!('0' <= c && c <= '9')) {
+                    throw new FixError.NotDigitException(c, u + 1);
+                }
+            }
+        }
+    }
+
 
     protected String dump(int offset, int count) {
         StringBuilder sb = new StringBuilder();

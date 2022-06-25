@@ -219,20 +219,20 @@ can be defined as a filler.
 
 Tag for alphanumeric field is `Abc`, the possible attributes are:
 
-|attribute  |alt| type  |note                            |
+|attribute  |alt| type  | note                           |
 |-----------|---| :---: |--------------------------------|
 |[offset](#fld.offset)   |at | int   | **required**                   |
 |[length](#fld.length)   |len| int   | **required**                   |
 |[name](#fld.name)       |   |String | **required**                   |
 |[redefines](#fld.redef) |red|boolean| default `false`                |
 |[audit](#fld.audit)     |   |boolean| default `false`                |
-|[onOverflow](#fld.ovfl) |   |[^1]   | default `TruncRight`           |
-|[onUnderflow](#fld.unfl)|   |[^2]   | default `PadRight`             |
+|[onOverflow](#fld.ovfl) |   |[^1]   | default `Trunc`                |
+|[onUnderflow](#fld.unfl)|   |[^2]   | default `Pad`                  |
 |[padChar](#fld.pchr)    |   |char   | default value `' '`            |
 |[check](#fld.chk)       |   |[^3]   | default value `defaults.check` |
 
-[^1]: Overflow domain: TruncRight, TruncLeft, Error
-[^2]: Underflow domain: PadRight, PadLeft, Error
+[^1]: Overflow domain: Trunc, Error
+[^2]: Underflow domain: Pad, Error
 [^3]: Check domain: None, Ascii, Latin1, Valid
 
 Some attributes also have a shortened form. The meaning of some attributes is immediate.
@@ -279,11 +279,11 @@ not be considered in the overlay checks
 To introduce the <a name='fld.audit'>audit</a> attribute see section [5.4](#54).
 
 <a name='fld.ovfl'>onOverflow</a> indicates what to do if you try to set a value whose length is greater than the
-defined one. It is possible to set `TruncLeft`, `TruncRight` and `Error`, in the first two cases the value is truncated,
+defined one. It is possible to set `Trunc` and `Error`, in the first two cases the value is truncated,
 respectively to the left or to the right, in the last case an exception is thrown.
 
 <a name='fld.unfl'>onUnderflow</a> indicates what to do if you try to set a value whose length is less than the defined
-one. It is possible to set `PadLeft`, `PadRight` and `Error`, in the first two cases the value is padded respectively to
+one. It is possible to set `Pad` and `Error`, in the first two cases the value is padded respectively to
 the left or to the right, in the last case an exception is thrown.
 
 <a name='fld.pchr'>padchar</a> indicates the character to use for padding, in case of underflow.
@@ -308,22 +308,16 @@ are available:
 Tag for numeric field is `Num`, many attributes have the same meaning as in the alphanumeric case, the padding character
 is necessarily 0, the control is necessarily that the characters are numeric, the possible attributes are:
 
-|attribute  |alt|type   |note                            |
-|-----------|---| :---: |--------------------------------|
-|[offset](#fld.offset)   |at | int   | **required**                   |
-|[length](#fld.length)   |len| int   | **required**                   |
-|[name](#fld.name)       |   |String | **required**                   |
-|[redefines](#fld.redef) |red|boolean| default `false`                |
-|[audit](#fld.audit)     |   |boolean| default `false`                |
-|[onOverflow](#fld.ovfl) |   |[^1]   | default `TruncLeft`            |
-|[onUnderflow](#fld.unfl)|   |[^2]   | default `PadLeft`              |
-|[numericAccess](#fld.num)|num|boolean| default value `false`        |
-
-<!**
-|[space](#fld.spc)      | |[^4]   | default value `Deny` |
-
-[^4]: Space domain: Deny, Null, Init
--->
+|attribute  |alt|type   | note                  |
+|-----------|---| :---: |-----------------------|
+|[offset](#fld.offset)   |at | int   | **required**          |
+|[length](#fld.length)   |len| int   | **required**          |
+|[name](#fld.name)       |   |String | **required**          |
+|[redefines](#fld.redef) |red|boolean| default `false`       |
+|[audit](#fld.audit)     |   |boolean| default `false`       |
+|[onOverflow](#fld.ovfl) |   |[^1]   | default `Trunc`       |
+|[onUnderflow](#fld.unfl)|   |[^2]   | default `Pad`         |
+|[numericAccess](#fld.num)|num|boolean| default value `false` |
 
 <a name='fld.num'>numericAccess</a> indicates whether to generate the numeric setters and getters for the field, in
 addition to the alphanumeric ones. Numeric getters are prefixed with the return type.
@@ -347,19 +341,6 @@ public void setYear(String s){...}
 public int intYear(){...}
 public void setYear(int n){...}
 ~~~
-
-<!--
-<a name='fld.spc'>space</a> is a force to handle a null value. The following values are available:
-
-`Deny`
-: the field must be strictly numeric (no SPACES allow)
-
-`Null`
-: the field can also be SPACES, it is read as null, it is initialized to ZEROES
-
-`Init`
-: the field can also be SPACES, it is read as null, it is initialized to SPACES
--->
 
 #### <a name="433">4.3.3. Filler </a>
 

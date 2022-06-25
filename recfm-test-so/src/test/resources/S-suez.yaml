@@ -86,4 +86,4 @@ classes:
       - !Fil { at: 147, len: 4 }
       - !Num { name: weightKg  , at: 151, len: 3, num: true }
       - !Num { name: heightCm  , at: 154, len: 3, num: true }
-      - !Fil { at: 157, len: 4 }
+      - !Use { name: rate      , at: 157, len: 4, align: Right, init: ' ', pad: '0', check: DigitOrBlank }

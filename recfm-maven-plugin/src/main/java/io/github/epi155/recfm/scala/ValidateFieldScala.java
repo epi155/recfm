@@ -77,6 +77,30 @@ public class ValidateFieldScala extends ValidateField {
         }
     }
 
+    protected void validateUser(FieldUser fld, int w, int bias, boolean isFirst) {
+        if (fld.isRedefines()) return;
+        String prefix = prefixOf(isFirst);
+        switch (fld.getCheck()) {
+            case None:
+                break;
+            case Ascii:
+                pw.printf("%s checkAscii(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                break;
+            case Latin1:
+                pw.printf("%s checkLatin(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                break;
+            case Valid:
+                pw.printf("%s checkValid(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                break;
+            case Digit:
+                pw.printf("%s checkDigit(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                break;
+//            case DigitOrBlank:
+//                pw.printf("%s checkDigitBlank(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+//                break;
+        }
+    }
+
     private String prefixOf(boolean isFirst) {
         if (isFirst) {
             return "    var error =";

@@ -62,6 +62,7 @@ public class RecordFormatMojo extends AbstractMojo {
         tuningClassDef(constructor, representer);
         tuningField(constructor, representer, "!Abc", FieldAbc.class);
         tuningField(constructor, representer, "!Num", FieldNum.class);
+        tuningField(constructor, representer, "!Use", FieldUser.class);
         tuningField(constructor, representer, "!Fil", FieldFiller.class);
         tuningField(constructor, representer, "!Val", FieldConstant.class);
         tuningField(constructor, representer, "!Grp", FieldGroup.class);
@@ -83,6 +84,10 @@ public class RecordFormatMojo extends AbstractMojo {
             td.substituteProperty("num", boolean.class, "getNumericAccess", "setNumericAccess");
         else if (f == FieldConstant.class)
             td.substituteProperty("val", String.class, "getValue", "setValue");
+        else if (f == FieldUser.class) {
+            td.substituteProperty("init", char.class, "getInitChar", "setInitChar");
+            td.substituteProperty("pad", char.class, "getPadChar", "setPadChar");
+        }
         c.addTypeDescription(td);
         r.addTypeDescription(td);
     }

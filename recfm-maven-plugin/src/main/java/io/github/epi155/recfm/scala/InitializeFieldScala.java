@@ -12,6 +12,12 @@ public class InitializeFieldScala extends InitializeField {
     }
 
     @Override
+    protected void initializeUser(FieldUser fld, int bias) {
+        if (fld.isRedefines()) return;
+        pw.printf("    fill(%5d, %4d, '%c')%n", fld.getOffset() - bias, fld.getLength(), fld.getInitChar());
+    }
+
+    @Override
     protected void initializeGrp(FieldGroup fld, int bias) {
         if (fld.isRedefines()) return;
         fld.getFields().forEach(it -> field(it, bias));

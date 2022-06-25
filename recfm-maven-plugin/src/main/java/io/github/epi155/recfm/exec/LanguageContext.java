@@ -58,6 +58,10 @@ public abstract class LanguageContext {
                 FieldNum fn = (FieldNum) field;
                 if (fn.isRedefines()) continue;
                 lst.add(dump.newPicture(fn.getName(), fn.getOffset(), fn.getLength(), "9"));
+            } else if (field instanceof FieldUser) {
+                FieldUser fn = (FieldUser) field;
+                if (fn.isRedefines()) continue;
+                lst.add(dump.newPicture(fn.getName(), fn.getOffset(), fn.getLength(), "X"));
             } else if (field instanceof FieldConstant) {
                 lst.add(dump.newPicture("<Constant>", field.getOffset(), field.getLength(), "X"));
             } else if (field instanceof FieldOccurs) {

@@ -11,7 +11,7 @@ public class FieldNum extends SettableField implements IndentAble {
     private boolean numericAccess;
 
     @Override
-    public AlignMode align() {
+    public AlignMode getAlign() {
         return AlignMode.Left;
     }
 }

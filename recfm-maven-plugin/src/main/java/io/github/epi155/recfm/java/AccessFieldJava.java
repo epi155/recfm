@@ -3,9 +3,7 @@ package io.github.epi155.recfm.java;
 import io.github.epi155.recfm.exec.GenerateArgs;
 import io.github.epi155.recfm.exec.LanguageContext;
 import io.github.epi155.recfm.lang.AccessField;
-import io.github.epi155.recfm.type.FieldAbc;
-import io.github.epi155.recfm.type.FieldNum;
-import io.github.epi155.recfm.type.IndentAble;
+import io.github.epi155.recfm.type.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -224,7 +222,7 @@ class AccessFieldJava extends AccessField implements IndentAble {
             indent(pw, indent);
             pw.printf("        testDigit(s);%n");
         }
-        val align = fld.align();
+        val align = fld.getAlign();
         pw.printf("        setNum(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '0');%n",
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align));
         indent(pw, indent);
@@ -235,6 +233,12 @@ class AccessFieldJava extends AccessField implements IndentAble {
     protected void createMethodsAbc(@NotNull FieldAbc fld, int indent, GenerateArgs ga) {
         val wrkName = LanguageContext.getWrkName(fld.getName());
         alphanumeric(fld, wrkName, indent, ga);
+    }
+
+    @Override
+    protected void createMethodsUser(FieldUser fld, int indent, GenerateArgs ga) {
+        val wrkName = LanguageContext.getWrkName(fld.getName());
+        userType(fld, wrkName, indent, ga);
     }
 
     private void alphanumeric(FieldAbc fld, String wrkName, int indent, GenerateArgs ga) {
@@ -252,7 +256,7 @@ class AccessFieldJava extends AccessField implements IndentAble {
         pw.printf("    public void set%s(String s) {%n", wrkName);
         if (ga.setCheck) chkSetter(pw, fld, indent);
         indent(pw, indent);
-        val align = fld.align();
+        val align = fld.getAlign();
         pw.printf("        setAbc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', ' ');%n",
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar());
         indent(pw, indent);
@@ -297,7 +301,7 @@ class AccessFieldJava extends AccessField implements IndentAble {
         }
     }
 
-    private void docSetter(PrintWriter pw, FieldAbc fld, int indent) {
+    private void docSetter(PrintWriter pw, SettableField fld, int indent) {
         indent(pw, indent);
         pw.printf("    /**%n");
         indent(pw, indent);
@@ -308,7 +312,7 @@ class AccessFieldJava extends AccessField implements IndentAble {
         pw.printf("     */%n");
     }
 
-    private void docGetter(PrintWriter pw, FieldAbc fld, int indent) {
+    private void docGetter(PrintWriter pw, SettableField fld, int indent) {
         indent(pw, indent);
         pw.printf("    /**%n");
         indent(pw, indent);
@@ -317,5 +321,81 @@ class AccessFieldJava extends AccessField implements IndentAble {
         pw.printf("     * @return string value%n");
         indent(pw, indent);
         pw.printf("     */%n");
+    }
+
+    private void userType(FieldUser fld, String wrkName, int indent, GenerateArgs ga) {
+        if (ga.doc) docGetter(pw, fld, indent);
+        indent(pw, indent);
+        pw.printf("    public String get%s() {%n", wrkName);
+        if (ga.getCheck) chkGetter(pw, fld, indent);
+        indent(pw, indent);
+        pw.printf("        return getAbc(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
+        indent(pw, indent);
+        pw.printf("    }%n");
+        defaultOnNull(fld);
+        if (ga.doc) docSetter(pw, fld, indent);
+        indent(pw, indent);
+        pw.printf("    public void set%s(String s) {%n", wrkName);
+        if (ga.setCheck) chkSetter(pw, fld, indent);
+        indent(pw, indent);
+        val align = fld.getAlign();
+        pw.printf("        setAbc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', '%c');%n",
+            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar(), fld.getInitChar());
+        indent(pw, indent);
+        pw.printf("    }%n");
+    }
+
+    private void chkSetter(PrintWriter pw, FieldUser fld, int indent) {
+        switch (fld.getCheck()) {
+            case None:
+                break;
+            case Ascii:
+                indent(pw, indent);
+                pw.printf("        testAscii(s);%n");
+                break;
+            case Latin1:
+                indent(pw, indent);
+                pw.printf("        testLatin(s);%n");
+                break;
+            case Valid:
+                indent(pw, indent);
+                pw.printf("        testValid(s);%n");
+                break;
+            case Digit:
+                indent(pw, indent);
+                pw.printf("        testDigit(s);%n");
+                break;
+            case DigitOrBlank:
+                indent(pw, indent);
+                pw.printf("        testDigitBlank(s);%n");
+                break;
+        }
+    }
+
+    private void chkGetter(PrintWriter pw, FieldUser fld, int indent) {
+        switch (fld.getCheck()) {
+            case None:
+                break;
+            case Ascii:
+                indent(pw, indent);
+                pw.printf("        testAscii(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
+                break;
+            case Latin1:
+                indent(pw, indent);
+                pw.printf("        testLatin(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
+                break;
+            case Valid:
+                indent(pw, indent);
+                pw.printf("        testValid(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
+                break;
+            case Digit:
+                indent(pw, indent);
+                pw.printf("        testDigit(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
+                break;
+            case DigitOrBlank:
+                indent(pw, indent);
+                pw.printf("        testDigitBlank(%s, %d);%n", pos.apply(fld.getOffset()), fld.getLength());
+                break;
+        }
     }
 }

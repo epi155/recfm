@@ -10,7 +10,7 @@ public class FieldAbc extends SettableField implements IndentAble {
     private CheckChar check;
 
     @Override
-    public AlignMode align() {
+    public AlignMode getAlign() {
         return AlignMode.Right;
     }
 }

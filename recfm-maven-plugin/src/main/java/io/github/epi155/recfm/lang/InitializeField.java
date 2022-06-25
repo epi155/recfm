@@ -2,10 +2,12 @@ package io.github.epi155.recfm.lang;
 
 import io.github.epi155.recfm.type.*;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.PrintWriter;
 
 @Data
+@Slf4j
 public abstract class InitializeField {
     protected final PrintWriter pw;
     protected final ClassDefine struct;
@@ -16,6 +18,8 @@ public abstract class InitializeField {
             initializeAbc((FieldAbc) fld, bias);
         } else if (fld instanceof FieldNum) {
             initializeNum((FieldNum) fld, bias);
+        } else if (fld instanceof FieldUser) {
+            initializeUser((FieldUser) fld, bias);
         } else if (fld instanceof FieldConstant) {
             initializeVal((FieldConstant) fld, bias);
         } else if (fld instanceof FieldFiller) {
@@ -24,8 +28,12 @@ public abstract class InitializeField {
             initializeOcc((FieldOccurs) fld, bias);
         } else if (fld instanceof FieldGroup) {
             initializeGrp((FieldGroup) fld, bias);
+        } else {
+            log.warn("Unknown field type {}", fld.getClass().getSimpleName());
         }
     }
+
+    protected abstract void initializeUser(FieldUser fld, int bias);
 
     protected abstract void initializeGrp(FieldGroup fld, int bias);
 
