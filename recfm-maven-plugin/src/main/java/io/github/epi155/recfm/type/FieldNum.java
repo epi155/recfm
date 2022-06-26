@@ -14,4 +14,9 @@ public class FieldNum extends SettableField implements IndentAble {
     public AlignMode getAlign() {
         return AlignMode.Left;
     }
+
+    @Override
+    public String picure() {
+        return "9";
+    }
 }

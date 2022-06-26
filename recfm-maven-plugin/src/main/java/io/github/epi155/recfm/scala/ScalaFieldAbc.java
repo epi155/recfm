@@ -25,7 +25,7 @@ public class ScalaFieldAbc extends ActionField<FieldAbc> implements ScalaFieldTo
 
     @Override
     public void initialize(FieldAbc fld, int bias) {
-        pw.printf("    fill(%5d, %4d, ' ')%n", fld.getOffset() - bias, fld.getLength());
+        printf("    fill(%5d, %4d, ' ')%n", fld.getOffset() - bias, fld.getLength());
     }
 
     @Override
@@ -38,73 +38,62 @@ public class ScalaFieldAbc extends ActionField<FieldAbc> implements ScalaFieldTo
             case None:
                 break;
             case Ascii:
-                pw.printf("%s checkAscii(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                printf("%s checkAscii(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
                 break;
             case Latin1:
-                pw.printf("%s checkLatin(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                printf("%s checkLatin(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
                 break;
             case Valid:
-                pw.printf("%s checkValid(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
+                printf("%s checkValid(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
                 break;
         }
     }
 
     @Override
     public void access(FieldAbc fld, String wrkName, int indent, GenerateArgs ga) {
-        indent(indent);
-        pw.printf("  final def %s: String = {%n", fld.getName());
-        if (ga.getCheck) chkGetter(fld, indent);
-        indent(indent);
-        pw.printf("    abc(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
-        indent(indent);
-        pw.printf("  }%n");
+        pushIndent(indent);
+        printf("  final def %s: String = {%n", fld.getName());
+        if (ga.getCheck) chkGetter(fld);
+        printf("    abc(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+        printf("  }%n");
         defaultOnNull(fld);
-        indent(indent);
-        pw.printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
-        if (ga.setCheck) chkSetter(fld, indent);
-        indent(indent);
+        printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
+        if (ga.setCheck) chkSetter(fld);
         val align = fld.getAlign();
-        pw.printf("    abc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', ' ')%n",
+        printf("    abc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', ' ')%n",
             pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar());
-        indent(indent);
-        pw.printf("  }%n");
-
+        printf("  }%n");
+        popIndent();
     }
 
-    private void chkSetter(FieldAbc fld, int indent) {
+    private void chkSetter(FieldAbc fld) {
         switch (fld.getCheck()) {
             case None:
                 break;
             case Ascii:
-                indent(indent);
-                pw.printf("    testAscii(s);%n");
+                printf("    testAscii(s)%n");
                 break;
             case Latin1:
-                indent(indent);
-                pw.printf("    testLatin(s);%n");
+                printf("    testLatin(s)%n");
                 break;
             case Valid:
-                indent(indent);
-                pw.printf("    testValid(s);%n");
+                printf("    testValid(s)%n");
                 break;
         }
     }
 
-    private void chkGetter(FieldAbc fld, int indent) {
+    private void chkGetter(FieldAbc fld) {
         switch (fld.getCheck()) {
             case None:
                 break;
             case Ascii:
-                indent(indent);
-                pw.printf("    testAscii(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+                printf("    testAscii(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
                 break;
             case Latin1:
-                indent(indent);
-                pw.printf("    testLatin(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+                printf("    testLatin(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
                 break;
             case Valid:
-                indent(indent);
-                pw.printf("    testValid(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
+                printf("    testValid(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
                 break;
         }
     }

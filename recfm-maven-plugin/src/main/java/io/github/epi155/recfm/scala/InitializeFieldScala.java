@@ -2,6 +2,7 @@ package io.github.epi155.recfm.scala;
 
 import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.lang.InitializeField;
+import io.github.epi155.recfm.lang.StemField;
 import io.github.epi155.recfm.type.*;
 import lombok.EqualsAndHashCode;
 
@@ -12,8 +13,8 @@ public class InitializeFieldScala extends InitializeField {
     private final ActionField<FieldAbc> delegateAbc;
     private final ActionField<FieldNum> delegateNum;
     private final ActionField<FieldCustom> delegateUse;
-    private final ActionField<FieldFiller> delegateFil;
-    private final ActionField<FieldConstant> delegateVal;
+    private final StemField<FieldFiller> delegateFil;
+    private final StemField<FieldConstant> delegateVal;
 
     public InitializeFieldScala(PrintWriter pw, ClassDefine struct, Defaults defaults) {
         super(pw, struct, defaults);

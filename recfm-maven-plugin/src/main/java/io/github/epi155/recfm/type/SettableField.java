@@ -13,6 +13,8 @@ public abstract class SettableField extends NamedField {
 
     public abstract AlignMode getAlign();
 
+    public abstract String picure();
+
     public String pad(int w) {
         return pad(getName().length(), w);
     }

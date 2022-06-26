@@ -289,15 +289,6 @@ abstract class FixEngine(
     }
   }
 
-  protected def testAscii(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
-    }
-  }
-
   protected def testDigit(offset: Int, count: Int): Unit = {
     var u = offset
     var v = 0
@@ -337,28 +328,6 @@ abstract class FixEngine(
         u += 1
         v += 1
       }
-    }
-  }
-
-  protected def testDigit(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u)
-    }
-  }
-
-  protected def testDigitBlank(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    if (raw(0) == ' ') for (u <- 1 until raw.length) {
-      val c = raw(u)
-      if (c != ' ') throw new FixError.NotBlankException(c, u + 1)
-    }
-    else for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u + 1)
     }
   }
 
@@ -416,15 +385,6 @@ abstract class FixEngine(
     }
   }
 
-  protected def testLatin(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u) & 0xff7f
-      if (!(32 <= c && c <= 127)) throw new FixError.NotLatinException(c, u)
-    }
-  }
-
   protected def checkValid(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
     var u = offset
     var v = 0
@@ -453,15 +413,6 @@ abstract class FixEngine(
       if (Character.isISOControl(c) || !Character.isDefined(c)) throw new FixError.NotValidException(c, u)
       u += 1
       v += 1
-    }
-  }
-
-  protected def testValid(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (Character.isISOControl(c) || !Character.isDefined(c)) throw new FixError.NotValidException(c, u)
     }
   }
 
@@ -509,6 +460,56 @@ abstract class FixEngine(
     }
   }
 
+  //___ static like ___
+  //
+  protected def testAscii(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
+    }
+  }
+
+  protected def testLatin(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u) & 0xff7f
+      if (!(32 <= c && c <= 127)) throw new FixError.NotLatinException(c, u)
+    }
+  }
+
+  protected def testValid(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (Character.isISOControl(c) || !Character.isDefined(c)) throw new FixError.NotValidException(c, u)
+    }
+  }
+
+  protected def testDigit(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u)
+    }
+  }
+
+  protected def testDigitBlank(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    if (raw(0) == ' ') for (u <- 1 until raw.length) {
+      val c = raw(u)
+      if (c != ' ') throw new FixError.NotBlankException(c, u + 1)
+    }
+    else for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u + 1)
+    }
+  }
 }
 
 object FixEngine {

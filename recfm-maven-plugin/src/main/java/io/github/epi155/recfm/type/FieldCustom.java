@@ -10,4 +10,9 @@ public class FieldCustom extends SettableField implements IndentAble {
     private char initChar = ' ';
     private CheckUser check = CheckUser.Ascii;
     private AlignMode align = AlignMode.Left;
+
+    @Override
+    public String picure() {
+        return "X";
+    }
 }

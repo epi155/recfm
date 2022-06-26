@@ -21,7 +21,7 @@ import java.util.function.IntFunction;
  */
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-class AccessFieldJava extends AccessField implements IndentAble {
+public class AccessFieldJava extends AccessField implements IndentAble {
     private final ActionField<FieldAbc> delegateAbc;
     private final ActionField<FieldNum> delegateNum;
     private final ActionField<FieldCustom> delegateUse;
@@ -50,7 +50,7 @@ class AccessFieldJava extends AccessField implements IndentAble {
     }
 
     @Override
-    protected void createMethodsUser(FieldCustom fld, int indent, GenerateArgs ga) {
+    protected void createMethodsCustom(FieldCustom fld, int indent, GenerateArgs ga) {
         val wrkName = LanguageContext.getWrkName(fld.getName());
         delegateUse.access(fld, wrkName, indent, ga);
     }

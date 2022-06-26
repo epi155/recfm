@@ -370,7 +370,7 @@ abstract class FixEngine {
         return false;
     }
 
-    protected void testDigitBlank(String value) {
+    protected static void testDigitBlank(String value) {
         if (value == null) return;
         char[] raw = value.toCharArray();
         if (raw[0] == ' ') {

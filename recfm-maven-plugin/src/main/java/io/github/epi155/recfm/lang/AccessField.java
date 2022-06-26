@@ -28,7 +28,7 @@ public abstract class AccessField {
         } else if (fld instanceof FieldNum) {
             createMethodsNum((FieldNum) fld, indent, ga);
         } else if (fld instanceof FieldCustom) {
-            createMethodsUser((FieldCustom) fld, indent, ga);
+            createMethodsCustom((FieldCustom) fld, indent, ga);
         } else {
             log.warn("Unknown field type {}: {}", fld.getName(), fld.getClass().getSimpleName());
         }
@@ -52,7 +52,7 @@ public abstract class AccessField {
      */
     protected abstract void createMethodsAbc(FieldAbc fld, int indent, GenerateArgs ga);
 
-    protected abstract void createMethodsUser(FieldCustom fld, int indent, GenerateArgs ga);
+    protected abstract void createMethodsCustom(FieldCustom fld, int indent, GenerateArgs ga);
 
     /**
      * Set system default on field overflow/underflow

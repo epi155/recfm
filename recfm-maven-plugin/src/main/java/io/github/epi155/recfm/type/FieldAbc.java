@@ -13,4 +13,9 @@ public class FieldAbc extends SettableField implements IndentAble {
     public AlignMode getAlign() {
         return AlignMode.Right;
     }
+
+    @Override
+    public String picure() {
+        return "X";
+    }
 }

@@ -51,7 +51,7 @@ public class AccessFieldScala extends AccessField implements IndentAble {
     }
 
     @Override
-    protected void createMethodsUser(FieldCustom fld, int indent, GenerateArgs ga) {
+    protected void createMethodsCustom(FieldCustom fld, int indent, GenerateArgs ga) {
         val wrkName = LanguageContext.getWrkName(fld.getName());
         delegateUse.access(fld, wrkName, indent, ga);
     }
