@@ -11,10 +11,11 @@
     * [4.3. Field level](#43)
         * [4.3.1. Alphanumeric](#431)
         * [4.3.2. Numeric](#432)
-        * [4.3.3. Filler](#433)
-        * [4.3.4. Constant](#434)
-        * [4.3.5. Group](#435)
-        * [4.3.6. Occurs](#436)
+        * [4.3.3. Custom](#433)
+        * [4.3.4. Filler](#434)
+        * [4.3.5. Constant](#435)
+        * [4.3.6. Group](#436)
+        * [4.3.7. Occurs](#437)
 * [5. Special methods](#5)
     * [5.1. `static ... decode(String s)`](#51)
     * [5.2. `String encode()`](#52)
@@ -151,6 +152,12 @@ is `${project.build.resources[0].directory}`, ie **`src/main/resources`**
 ie setters and getters are adapted to `int` or `long` depending on the length of the field. Using 2 also uses `short`,
 and using 1 also uses `byte`.
 
+`enforceGetter`
+: indicates whether or not to check the value before returning the value. If the record is valid it can be set to false. Default value is **`true`**.
+
+`enforceSetter`
+: indicates whether or not to check the supplied value before setting it in the record.Default value is **`true`**.
+
 ## <a name="4">4. Configuration YAML details</a>
 
 In general we can have multiple configuration files.
@@ -233,7 +240,7 @@ Tag for alphanumeric field is `Abc`, the possible attributes are:
 
 [^1]: Overflow domain: Trunc, Error
 [^2]: Underflow domain: Pad, Error
-[^3]: Check domain: None, Ascii, Latin1, Valid
+[^3]: CheckA domain: None, Ascii, Latin1, Valid
 
 Some attributes also have a shortened form. The meaning of some attributes is immediate.
 The <a name='fld.offset'>offset</a> attribute indicates the starting position of the field (starting from 1).
@@ -337,12 +344,49 @@ Generated java for *year* field
 
 ~~~java
     public String getYear(){...}
-public void setYear(String s){...}
-public int intYear(){...}
-public void setYear(int n){...}
+    public void setYear(String s){...}
+    public int intYear(){...}
+    public void setYear(int n){...}
 ~~~
 
-#### <a name="433">4.3.3. Filler </a>
+#### <a name="433">4.3.3. Custom </a>
+Tag for custom field is `Cus`, a custom field is an extension of an alphanumeric field, with some additional parameters
+
+|attribute  |alt| type  | note                           |
+|-----------|---| :---: |--------------------------------|
+|[offset](#fld.offset)   |at | int   | **required**                   |
+|[length](#fld.length)   |len| int   | **required**                   |
+|[name](#fld.name)       |   |String | **required**                   |
+|[redefines](#fld.redef) |red|boolean| default `false`                |
+|[audit](#fld.audit)     |   |boolean| default `false`                |
+|[onOverflow](#fld.ovfl) |   |[^1]   | default `Trunc`                |
+|[onUnderflow](#fld.unfl)|   |[^2]   | default `Pad`                  |
+|[padChar](#fld.pchr)    |   |char   | default value `' '`            |
+|[initChar](#fld.ichr)   |   |char   | default value `' '`            |
+|[check](#fld.ichk)      |   |[^4]   | default value `Ascii` |
+|[align](#fld.ialign)    |   |[^5]   | default value `Left` |
+
+[^4]: CheckC domain: None, Ascii, Latin1, Valid, Digit, DigitOrBlank
+[^5]: AlignC domain: Left, Right
+
+<a name='fld.ichr'>initChar</a> indicates the character to use to initialize the field when the empty constructor is used.
+
+<a name='fld.ichk'>check</a> indicates which checks to perform in the *validate* or *audit* phase. The following values
+are available:
+
+`None` .. `Valid`
+: see [alphanumeric](#fld.chk) case
+
+`Digit`
+: only numeric characters from 0 to 9 are accepted
+
+`DigitOrBlank`
+: digit or all space characters is accepted
+
+
+<a name='fld.ialign'>align</a> indicates the direction to align the field in case the supplied length is different from the available one.
+
+#### <a name="434">4.3.4. Filler </a>
 
 Tag for filler field is `Fil`, a filler is an area we are not interested in, neither getters nor setters are generated
 for it, the possible attributes are:
@@ -356,7 +400,7 @@ for it, the possible attributes are:
 
 <a name='fld.fill'>fillChar</a> indicates the character to use to initialize the area
 
-#### <a name="434">4.3.4. Constant </a>
+#### <a name="435">4.3.5. Constant </a>
 
 Tag for constant field is `Val`, even for a constant field the setters and getters are not generated, the controls
 verify that the present value coincides with the set one, the possible attributes are:
@@ -370,7 +414,7 @@ verify that the present value coincides with the set one, the possible attribute
 
 <a name='fld.val'>value</a> indicates the value with which to initialize the area
 
-#### <a name="435">4.3.5. Group </a>
+#### <a name="436">4.3.6. Group </a>
 
 Tag for group field is `Grp`, a group allows you to group multiple fields in order to structure the area, the possible
 attributes are:
@@ -415,7 +459,7 @@ Group usage example:
     val esitoComplTransaction=b280.transactionArea().getEsitoCompl();
 ~~~
 
-#### <a name="436">4.3.6. Occurs </a>
+#### <a name="437">4.3.7. Occurs </a>
 
 Tag for occurs field is `Occ`, an occurs is basically a repeated group, it is defined with the group data of the first
 occurrence and the number of occurrences, the possible attributes are:

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.function.IntFunction;
@@ -15,7 +16,31 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class LanguageContext {
-    protected static final String VERSION = Optional.ofNullable(LanguageContext.class.getPackage().getImplementationVersion()).orElse("N/A");
+//    protected static final String VERSION = Optional.ofNullable(LanguageContext.class.getPackage().getImplementationVersion()).orElse("N/A");
+    protected static final String R_GROUP;
+    protected static final String R_NAME;
+    protected static final String R_VERSION;
+
+    static {
+        java.util.Properties p = new Properties();
+        String group;
+        String name;
+        String version;
+        try (java.io.InputStream is = LanguageContext.class.getClassLoader().getResourceAsStream(("recfm.properties"))) {
+            p.load(is);
+            group = p.getProperty("project.group");
+            name = p.getProperty("project.name");
+            version = p.getProperty("project.version");
+        } catch (IOException e) {
+            throw new RuntimeException();
+//            group = "no-group";
+//            name = "no-name";
+//            version = "no-version";
+        }
+        R_GROUP = group;
+        R_NAME = name;
+        R_VERSION = version;
+    }
     private static final String CONSTANT = "<Constant>";
 
     public static String getWrkName(String name) {

@@ -12,6 +12,12 @@
     <artifactId>recfm-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
 
+    <properties>
+        <project.group>${groupId}</project.group>
+        <project.name>${artifactId}</project.name>
+        <project.version>${version}</project.version>
+    </properties>
+
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.apache.maven/maven-plugin-api -->
         <dependency>
@@ -106,6 +112,23 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>2.22.2</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>write-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>${project.build.outputDirectory}/recfm.properties</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
