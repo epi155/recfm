@@ -220,7 +220,7 @@ It is possible to define various types of fields, each of which has specific att
 tag is used for each type, Let's see them in detail one by one.
 
 The entire area of the class or of a group of it must be associated with a field. If a part of the area is not needed it
-can be defined as a filler.
+should be defined as a filler.
 
 #### <a name="431">4.3.1. Alphanumeric </a>
 
@@ -503,7 +503,7 @@ Occurs definition example:
 Occurs usage example:
 
 ~~~java
-        val resp=new FooResp();
+    val resp=new FooResp();
     ...
     resp.errItem(1).setApplicationId("05");
     resp.errItem(1).setErrorCodeSource("91302");
