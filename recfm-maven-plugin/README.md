@@ -69,7 +69,7 @@ Configuration file example:
 ~~~
 packageName: org.example.sys.file
 classes:
-  - name: SuezBody
+  - name: FooBody
     len: 543
     fields:
       - !Num { name: ibrKey  , at:   1, len:  11 }
@@ -91,12 +91,12 @@ Generated java class
 package org.example.sys.file;
 ...
 
-public class SuezBody extends FixRecord {
+public class FooBody extends FixRecord {
     public static final int LRECL = 543;
 
-    public SuezBody() { ...}
+    public FooBody() { ...}
 
-    public static SuezBody decode(String s) { ...}
+    public static FooBody decode(String s) { ...}
 
     public String encode();
     ...
@@ -197,7 +197,7 @@ A string is associated with each class. At the class level the following paramet
 
 ~~~yml
 classes:
-  - name: SuezBody
+  - name: FooBody
     length: 543
     onOverflow: Trunc
     onUnderflow: Pad
@@ -261,13 +261,13 @@ Generated setter and getter
 
 ~~~java
     public String getHuey(){...}
-public void setHuey(String s){...}
+    public void setHuey(String s){...}
 
-public String getDewey(){...}
-public void setDewey(String s){...}
+    public String getDewey(){...}
+    public void setDewey(String s){...}
 
-public String getLouie(){...}
-public void setLouie(String s){...}
+    public String getLouie(){...}
+    public void setLouie(String s){...}
 ~~~
 
 The <a name='fld.redef'>redefines</a> attribute indicates that the field is a redefinition of an area, this field will
@@ -437,7 +437,7 @@ The <a name='grp.flds'>fields</a> attribute indicates a definition list of field
 Group definition example:
 
 ~~~yml
-  - name: B280v2xReq
+  - name: BarReq
     len: 19324
     fields:
       - !Grp { name: transactionArea     , at: 1, len: 12,
@@ -453,10 +453,10 @@ Group definition example:
 Group usage example:
 
 ~~~java
-        val b280=new B280v2xReq();
-    b280.transactionArea().setCdTransazione("TR00");
-    b280.transactionArea().setEsitoAgg("0");
-    val esitoComplTransaction=b280.transactionArea().getEsitoCompl();
+        val bar=new BarReq();
+        bar.transactionArea().setCdTransazione("TR00");
+        bar.transactionArea().setEsitoAgg("0");
+        val esitoComplTransaction=bar.transactionArea().getEsitoCompl();
 ~~~
 
 #### <a name="437">4.3.7. Occurs </a>
