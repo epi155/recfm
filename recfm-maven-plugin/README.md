@@ -48,10 +48,10 @@ Configuration plugin example:
 <plugin>
     <groupId>io.github.epi155</groupId>
     <artifactId>recfm-maven-plugin</artifactId>
-    <version>0.5.5</version>
+    <version>0.5.1</version>
     <configuration>
         <settings>
-            <setting>recfm-suez.yaml</setting>
+            <setting>recfm-foo.yaml</setting>
         </settings>
     </configuration>
     <executions>
