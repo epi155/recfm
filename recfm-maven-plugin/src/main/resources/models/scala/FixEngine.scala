@@ -1,3 +1,4 @@
+import java.nio.CharBuffer
 import java.text.NumberFormat
 import java.util
 
@@ -26,6 +27,17 @@ abstract class FixEngine(
 
   protected def abc(offset: Int, count: Int) = new String(rawData, offset, count)
 
+  protected def abc(s: String, offset: Int, count: Int): Unit = {
+    if (s == null) {
+      throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
+    }
+    else if (s.length == count) setAsIs(s, offset)
+    else if (s.length < count)
+        throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    else
+        throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+  }
+
   protected def abc(s: String, offset: Int, count: Int, overflowAction: OverflowAction.OverflowAction, underflowAction: UnderflowAction.UnderflowAction, pad: Char, init: Char): Unit = {
     if (s == null) {
       if (underflowAction eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
@@ -33,20 +45,20 @@ abstract class FixEngine(
     }
     else if (s.length == count) setAsIs(s, offset)
     else if (s.length < count) underflowAction match {
-      case UnderflowAction.PadRight =>
+      case UnderflowAction.PadR =>
         padToRight(s, offset, count, pad)
 
-      case UnderflowAction.PadLeft =>
+      case UnderflowAction.PadL =>
         padToLeft(s, offset, count, pad)
 
       case UnderflowAction.Error =>
         throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
     }
     else overflowAction match {
-      case OverflowAction.TruncRight =>
+      case OverflowAction.TruncR =>
         truncRight(s, offset, count)
 
-      case OverflowAction.TruncLeft =>
+      case OverflowAction.TruncL =>
         truncLeft(s, offset, count)
 
       case OverflowAction.Error =>
@@ -123,6 +135,34 @@ abstract class FixEngine(
     }
   }
 
+  protected def num(s: String, offset: Int, count: Int, ovfl: OverflowAction.OverflowAction, unfl: UnderflowAction.UnderflowAction): Unit = {
+    if (s == null) {
+      if (unfl eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
+      fillChar(offset, count, '0')
+    }
+    else if (s.length == count) setAsIs(s, offset)
+    else if (s.length < count) unfl match {
+      case UnderflowAction.PadR =>
+        padToRight(s, offset, count, '0')
+
+      case UnderflowAction.PadL =>
+        padToLeft(s, offset, count, '0')
+
+      case UnderflowAction.Error =>
+        throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    }
+    else ovfl match {
+      case OverflowAction.TruncR =>
+        truncRight(s, offset, count)
+
+      case OverflowAction.TruncL =>
+        truncLeft(s, offset, count)
+
+      case OverflowAction.Error =>
+        throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    }
+  }
+
   protected def checkDigitBlank(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
     var c = rawData(offset)
     if (c == ' ') {
@@ -158,34 +198,6 @@ abstract class FixEngine(
     }
     else return true
     false
-  }
-
-  protected def num(s: String, offset: Int, count: Int, ovfl: OverflowAction.OverflowAction, unfl: UnderflowAction.UnderflowAction): Unit = {
-    if (s == null) {
-      if (unfl eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
-      fillChar(offset, count, '0')
-    }
-    else if (s.length == count) setAsIs(s, offset)
-    else if (s.length < count) unfl match {
-      case UnderflowAction.PadRight =>
-        padToRight(s, offset, count, '0')
-
-      case UnderflowAction.PadLeft =>
-        padToLeft(s, offset, count, '0')
-
-      case UnderflowAction.Error =>
-        throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    }
-    else ovfl match {
-      case OverflowAction.TruncRight =>
-        truncRight(s, offset, count)
-
-      case OverflowAction.TruncLeft =>
-        truncLeft(s, offset, count)
-
-      case OverflowAction.Error =>
-        throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    }
   }
 
   private def fillChar(offset: Int, count: Int, fill: Char): Unit = {
@@ -274,6 +286,12 @@ abstract class FixEngine(
     false
   }
 
+  protected def fill(offset: Int, count: Int, s: String): Unit = {
+    if (s.length == count) setAsIs(s, offset)
+    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+  }
+
   protected def testDigit(offset: Int, count: Int): Unit = {
     var u = offset
     var v = 0
@@ -284,15 +302,6 @@ abstract class FixEngine(
       if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u)
       u += 1
       v += 1
-    }
-  }
-
-  protected def testAscii(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
     }
   }
 
@@ -323,34 +332,6 @@ abstract class FixEngine(
         v += 1
       }
     }
-  }
-
-  protected def testDigitBlank(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    if (raw(0) == ' ') for (u <- 1 until raw.length) {
-      val c = raw(u)
-      if (c != ' ') throw new FixError.NotBlankException(c, u + 1)
-    }
-    else for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u + 1)
-    }
-  }
-
-  protected def testDigit(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u)
-    }
-  }
-
-  protected def fill(offset: Int, count: Int, s: String): Unit = {
-    if (s.length == count) setAsIs(s, offset)
-    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
   }
 
   protected def checkEqual(name: String, offset: Int, count: Int, handler: FieldValidateHandler, value: String): Boolean = {
@@ -414,15 +395,6 @@ abstract class FixEngine(
     }
   }
 
-  protected def testLatin(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u) & 0xff7f
-      if (!(32 <= c && c <= 127)) throw new FixError.NotLatinException(c, u)
-    }
-  }
-
   protected def checkValid(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
     var u = offset
     var v = 0
@@ -441,6 +413,19 @@ abstract class FixEngine(
     false
   }
 
+  protected def checkArray(name: String, offset: Int, count: Int, handler: FieldValidateHandler, domain: Array[String]): Boolean = {
+    if (! domain.search(abc(offset, count)).isInstanceOf[scala.collection.Searching.Found]) {
+      handler.error(name, offset, count, offset, ValidateError.NotDomain)
+      return true
+    }
+    false
+  }
+
+  protected def testArray(offset: Int, count: Int, domain: Array[String]): Unit = {
+    val value = abc(offset, count)
+    if (! domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+  }
+
   protected def testValid(offset: Int, count: Int): Unit = {
     var u = offset
     var v = 0
@@ -451,15 +436,6 @@ abstract class FixEngine(
       if (Character.isISOControl(c) || !Character.isDefined(c)) throw new FixError.NotValidException(c, u)
       u += 1
       v += 1
-    }
-  }
-
-  protected def testValid(value: String): Unit = {
-    if (value == null) return
-    val raw = value.toCharArray
-    for (u <- 0 until raw.length) {
-      val c = raw(u)
-      if (Character.isISOControl(c) || !Character.isDefined(c)) throw new FixError.NotValidException(c, u)
     }
   }
 
@@ -507,6 +483,67 @@ abstract class FixEngine(
     }
   }
 
+  //___ static like ___
+  //
+  protected def testAscii(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
+    }
+  }
+
+  protected def testLatin(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u) & 0xff7f
+      if (!(32 <= c && c <= 127)) throw new FixError.NotLatinException(c, u)
+    }
+  }
+
+  protected def testValid(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (Character.isISOControl(c) || !Character.isDefined(c)) throw new FixError.NotValidException(c, u)
+    }
+  }
+
+  protected def testArray(value: String, domain: Array[String]): Unit = {
+    if (value == null) return
+    if (! domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+  }
+
+  protected def testDigit(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u)
+    }
+  }
+
+  protected def testDigitBlank(value: String): Unit = {
+    if (value == null) return
+    val raw = value.toCharArray
+    if (raw(0) == ' ') for (u <- 1 until raw.length) {
+      val c = raw(u)
+      if (c != ' ') throw new FixError.NotBlankException(c, u + 1)
+    }
+    else for (u <- 0 until raw.length) {
+      val c = raw(u)
+      if (!('0' <= c && c <= '9')) throw new FixError.NotDigitException(c, u + 1)
+    }
+  }
+
+  protected def normalize(s: String,
+                          overflowAction: OverflowAction.OverflowAction, underflowAction: UnderflowAction.UnderflowAction,
+                          pad: Char, init: Char,
+                          offset: Int, count: Int
+                         ): String = FixEngine.normalize(s, overflowAction, underflowAction, pad, init, offset, count)
 }
 
 object FixEngine {
@@ -516,5 +553,66 @@ object FixEngine {
   private val FOR_FIELD_AT = "> for field @"
   private val INVALID_NUMERIC = "Invalid numeric value <"
   private val RECORD_LENGTH = "Record length "
+
+  private def normalize(s: String,
+                    overflowAction: OverflowAction.OverflowAction, underflowAction: UnderflowAction.UnderflowAction,
+                    pad: Char, init: Char,
+                    offset: Int, count: Int
+                   ): String = {
+    if (s == null) {
+      if (underflowAction eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
+      fill(count, init)
+    }
+    else if (s.length == count) return s
+    else if (s.length < count) underflowAction match {
+      case UnderflowAction.PadR =>
+        rpad(s, count, pad)
+
+      case UnderflowAction.PadL =>
+        lpad(s, count, pad)
+
+      case UnderflowAction.Error =>
+        throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    }
+    else overflowAction match {
+      case OverflowAction.TruncR =>
+        rtrunc(s, count)
+
+      case OverflowAction.TruncL =>
+        ltrunc(s, count)
+
+      case OverflowAction.Error =>
+        throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    }
+  }
+
+  private def fill(t: Int, pad: Char) = CharBuffer.allocate(t).toString.replace('\u0000', pad)
+
+  private def rpad(s: String, t: Int, pad: Char): String = {
+    val len = s.length
+    if (len > t) return s.substring(0, t)
+    if (len == t) return s
+    s + CharBuffer.allocate(t - len).toString.replace('\u0000', pad)
+  }
+
+  private def lpad(s: String, t: Int, pad: Char): String = {
+    val len = s.length
+    if (len > t) return s.substring(len - t)
+    if (len == t) return s
+    CharBuffer.allocate(t - len).toString.replace('\u0000', pad) + s
+  }
+
+  private def rtrunc(s: String, t: Int) = {
+    val len = s.length
+    if (len > t) s.substring(0, t)
+    else s
+  }
+
+  private def ltrunc(s: String, t: Int) = {
+    val len = s.length
+    if (len > t) s.substring(len - t)
+    else s
+  }
+
 
 }

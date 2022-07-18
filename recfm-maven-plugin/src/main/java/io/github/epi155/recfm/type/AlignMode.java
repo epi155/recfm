@@ -1,5 +1,15 @@
 package io.github.epi155.recfm.type;
 
 public enum AlignMode {
-    Left, Right
+    LFT("R"), RGT("L");
+
+    /**
+     * Trunc/Pad suffix.
+     * Align left -> pad right
+     */
+    public final String code;
+
+    AlignMode(String code) {
+        this.code = code;
+    }
 }

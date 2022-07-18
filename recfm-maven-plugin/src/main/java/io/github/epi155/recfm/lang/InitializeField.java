@@ -19,7 +19,9 @@ public abstract class InitializeField {
         } else if (fld instanceof FieldNum) {
             initializeNum((FieldNum) fld, bias);
         } else if (fld instanceof FieldCustom) {
-            initializeUser((FieldCustom) fld, bias);
+            initializeCus((FieldCustom) fld, bias);
+        } else if (fld instanceof FieldDomain) {
+            initializeDom((FieldDomain) fld, bias);
         } else if (fld instanceof FieldConstant) {
             initializeVal((FieldConstant) fld, bias);
         } else if (fld instanceof FieldFiller) {
@@ -33,7 +35,9 @@ public abstract class InitializeField {
         }
     }
 
-    protected abstract void initializeUser(FieldCustom fld, int bias);
+    protected abstract void initializeDom(FieldDomain fld, int bias);
+
+    protected abstract void initializeCus(FieldCustom fld, int bias);
 
     protected abstract void initializeGrp(FieldGroup fld, int bias);
 

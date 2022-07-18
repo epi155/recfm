@@ -6,8 +6,8 @@ import io.github.epi155.recfm.lang.AccessField;
 import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.type.FieldAbc;
 import io.github.epi155.recfm.type.FieldCustom;
+import io.github.epi155.recfm.type.FieldDomain;
 import io.github.epi155.recfm.type.FieldNum;
-import io.github.epi155.recfm.type.IndentAble;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -21,10 +21,11 @@ import java.util.function.IntFunction;
  */
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-public class AccessFieldJava extends AccessField implements IndentAble {
+public class AccessFieldJava extends AccessField /*implements IndentAble*/ {
     private final ActionField<FieldAbc> delegateAbc;
     private final ActionField<FieldNum> delegateNum;
-    private final ActionField<FieldCustom> delegateUse;
+    private final ActionField<FieldCustom> delegateCus;
+    private final ActionField<FieldDomain> delegateDom;
 
     /**
      * Contructor
@@ -35,7 +36,14 @@ public class AccessFieldJava extends AccessField implements IndentAble {
     public AccessFieldJava(PrintWriter pw, IntFunction<String> pos) {
         this.delegateAbc = new JavaFieldAbc(pw, pos);
         this.delegateNum = new JavaFieldNum(pw, pos);
-        this.delegateUse = new JavaFieldCustom(pw, pos);
+        this.delegateCus = new JavaFieldCustom(pw, pos);
+        this.delegateDom = new JavaFieldDomain(pw, pos);
+    }
+
+    @Override
+    protected void createMethodsDomain(FieldDomain fld, int indent, GenerateArgs ga) {
+        val wrkName = LanguageContext.getWrkName(fld.getName());
+        delegateDom.access(fld, wrkName, indent, ga);
     }
 
     protected void createMethodsNum(@NotNull FieldNum fld, int indent, @NotNull GenerateArgs ga) {
@@ -52,6 +60,6 @@ public class AccessFieldJava extends AccessField implements IndentAble {
     @Override
     protected void createMethodsCustom(FieldCustom fld, int indent, GenerateArgs ga) {
         val wrkName = LanguageContext.getWrkName(fld.getName());
-        delegateUse.access(fld, wrkName, indent, ga);
+        delegateCus.access(fld, wrkName, indent, ga);
     }
 }

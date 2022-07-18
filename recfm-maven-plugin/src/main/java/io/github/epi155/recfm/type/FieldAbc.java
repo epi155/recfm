@@ -5,17 +5,17 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FieldAbc extends SettableField implements IndentAble {
+public class FieldAbc extends FloatingField /*implements IndentAble*/ {
     private char padChar = ' ';
     private CheckChar check;
 
     @Override
     public AlignMode getAlign() {
-        return AlignMode.Right;
+        return AlignMode.LFT;
     }
 
     @Override
-    public String picure() {
+    public String picture() {
         return "X";
     }
 }

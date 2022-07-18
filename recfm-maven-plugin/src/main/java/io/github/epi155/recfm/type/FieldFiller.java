@@ -7,5 +7,5 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class FieldFiller extends NakedField {
     private Character fillChar;
-    private CheckChar check;
+    private CheckChar check = CheckChar.None;
 }

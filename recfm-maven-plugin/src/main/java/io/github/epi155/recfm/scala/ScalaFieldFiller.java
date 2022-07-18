@@ -5,6 +5,7 @@ import io.github.epi155.recfm.type.CheckChar;
 import io.github.epi155.recfm.type.Defaults;
 import io.github.epi155.recfm.type.FieldFiller;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 
@@ -17,18 +18,16 @@ public class ScalaFieldFiller extends StemField<FieldFiller> implements ScalaFie
     }
 
     @Override
-    public void initialize(FieldFiller fld, int bias) {
+    public void initialize(@NotNull FieldFiller fld, int bias) {
         char c = fld.getFillChar() == null ? defaults.getFillChar() : fld.getFillChar();
         printf("    fill(%5d, %4d, '%s')%n",
             fld.getOffset() - bias, fld.getLength(), StringEscapeUtils.escapeJava(String.valueOf(c)));
     }
 
     @Override
-    public void validate(FieldFiller fld, int w, int bias, boolean isFirst) {
+    public void validate(@NotNull FieldFiller fld, int w, int bias, boolean isFirst) {
         String prefix = prefixOf(isFirst);
         CheckChar chk = fld.getCheck();
-        if (chk == null && defaults != null) chk = defaults.getCheck();
-        if (chk == null) return;
         switch (chk) {
             case None:
                 break;

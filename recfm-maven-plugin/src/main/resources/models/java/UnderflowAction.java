@@ -1,3 +1,3 @@
 public enum UnderflowAction {
-    Error, PadRight, PadLeft
+    Error, PadR, PadL
 }

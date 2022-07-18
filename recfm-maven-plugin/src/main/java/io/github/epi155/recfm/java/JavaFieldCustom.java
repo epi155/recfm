@@ -58,12 +58,21 @@ public class JavaFieldCustom extends ActionField<FieldCustom> implements JavaFie
         defaultOnNull(fld);
         if (ga.doc) docSetter(fld);
         printf("    public void set%s(String s) {%n", wrkName);
-        if (ga.setCheck) chkSetter(fld);
         val align = fld.getAlign();
-        printf("        setAbc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', '%c');%n",
-            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar(), fld.getInitChar());
+        if (ga.setCheck) {
+            printf("        s = normalize(s, OverflowAction.%s, UnderflowAction.%s, '%c', '%c', %s, %d);%n",
+                fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align),
+                fld.getPadChar(), fld.getInitChar(),
+                pos.apply(fld.getOffset()), fld.getLength()
+                );
+            chkSetter(fld);
+            printf("        setAbc(s, %s, %d);%n",
+                pos.apply(fld.getOffset()), fld.getLength());
+        } else {
+            printf("        setAbc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', '%c');%n",
+                pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar(), fld.getInitChar());
+        }
         printf("    }%n");
-
     }
 
     private void chkSetter(@NotNull FieldCustom fld) {

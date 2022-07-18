@@ -1,3 +1,3 @@
 public enum ValidateError {
-    NotNumber, NotAscii, NotLatin, NotValid, Mismatch
+    NotNumber, NotAscii, NotLatin, NotValid, NotDomain, Mismatch
 }

@@ -52,6 +52,7 @@ public class RecordFormatMojo extends AbstractMojo {
     @Parameter(defaultValue = "true", required = true)
     private boolean enforceSetter;
 
+    @SuppressWarnings("MismatchedReadAndWriteOfArray")
     @Parameter(required = true)
     private String[] settings;
 
@@ -63,6 +64,7 @@ public class RecordFormatMojo extends AbstractMojo {
         tuningField(constructor, representer, "!Abc", FieldAbc.class);
         tuningField(constructor, representer, "!Num", FieldNum.class);
         tuningField(constructor, representer, "!Cus", FieldCustom.class);
+        tuningField(constructor, representer, "!Dom", FieldDomain.class);
         tuningField(constructor, representer, "!Fil", FieldFiller.class);
         tuningField(constructor, representer, "!Val", FieldConstant.class);
         tuningField(constructor, representer, "!Grp", FieldGroup.class);

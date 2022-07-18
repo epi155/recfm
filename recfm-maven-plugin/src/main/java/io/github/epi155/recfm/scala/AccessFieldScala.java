@@ -6,8 +6,8 @@ import io.github.epi155.recfm.lang.AccessField;
 import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.type.FieldAbc;
 import io.github.epi155.recfm.type.FieldCustom;
+import io.github.epi155.recfm.type.FieldDomain;
 import io.github.epi155.recfm.type.FieldNum;
-import io.github.epi155.recfm.type.IndentAble;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -21,10 +21,11 @@ import java.util.function.IntFunction;
  */
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-public class AccessFieldScala extends AccessField implements IndentAble {
+public class AccessFieldScala extends AccessField /*implements IndentAble*/ {
     private final ActionField<FieldAbc> delegateAbc;
     private final ActionField<FieldNum> delegateNum;
-    private final ActionField<FieldCustom> delegateUse;
+    private final ActionField<FieldCustom> delegateCus;
+    private final ActionField<FieldDomain> delegateDom;
 
     /**
      * Constructor
@@ -32,10 +33,17 @@ public class AccessFieldScala extends AccessField implements IndentAble {
      * @param pw  output writer
      * @param pos field offset to string form
      */
-    public AccessFieldScala(PrintWriter pw, IntFunction<String> pos) {
+    public AccessFieldScala(PrintWriter pw, IntFunction<String> pos, String name) {
         delegateAbc = new ScalaFieldAbc(pw, pos);
         delegateNum = new ScalaFieldNum(pw, pos);
-        delegateUse = new ScalaFieldCustom(pw, pos);
+        delegateCus = new ScalaFieldCustom(pw, pos);
+        delegateDom = new ScalaFieldDomain(pw, pos, name);
+    }
+
+    @Override
+    protected void createMethodsDomain(FieldDomain fld, int indent, GenerateArgs ga) {
+        val wrkName = LanguageContext.getWrkName(fld.getName());
+        delegateDom.access(fld, wrkName, indent, ga);
     }
 
     @Override
@@ -53,7 +61,7 @@ public class AccessFieldScala extends AccessField implements IndentAble {
     @Override
     protected void createMethodsCustom(FieldCustom fld, int indent, GenerateArgs ga) {
         val wrkName = LanguageContext.getWrkName(fld.getName());
-        delegateUse.access(fld, wrkName, indent, ga);
+        delegateCus.access(fld, wrkName, indent, ga);
     }
 
 }

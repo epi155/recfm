@@ -1,6 +1,7 @@
 package io.github.epi155.recfm.lang;
 
 import lombok.AllArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 
@@ -16,7 +17,8 @@ public abstract class StemField<T> {
         pw.write(s);
     }
 
-    public abstract void initialize(T fld, int bias);
+    public abstract void initialize(@NotNull T fld, int bias);
+    public void prepare(@NotNull T fld, int bias) { /* NOP */ }
 
-    public abstract void validate(T fld, int w, int bias, boolean isFirst);
+    public abstract void validate(@NotNull T fld, int w, int bias, boolean isFirst);
 }

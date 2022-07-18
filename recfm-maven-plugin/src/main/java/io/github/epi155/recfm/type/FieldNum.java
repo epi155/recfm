@@ -7,16 +7,16 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class FieldNum extends SettableField implements IndentAble {
+public class FieldNum extends FloatingField /*implements IndentAble*/ {
     private boolean numericAccess;
 
     @Override
     public AlignMode getAlign() {
-        return AlignMode.Left;
+        return AlignMode.RGT;
     }
 
     @Override
-    public String picure() {
+    public String picture() {
         return "9";
     }
 }

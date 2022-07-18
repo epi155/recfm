@@ -4,6 +4,7 @@ import io.github.epi155.recfm.exec.GenerateArgs;
 import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.type.FieldCustom;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.util.function.IntFunction;
@@ -18,12 +19,12 @@ public class ScalaFieldCustom extends ActionField<FieldCustom> implements ScalaF
     }
 
     @Override
-    public void initialize(FieldCustom fld, int bias) {
+    public void initialize(@NotNull FieldCustom fld, int bias) {
         printf("    fill(%5d, %4d, '%c')%n", fld.getOffset() - bias, fld.getLength(), fld.getInitChar());
     }
 
     @Override
-    public void validate(FieldCustom fld, int w, int bias, boolean isFirst) {
+    public void validate(@NotNull FieldCustom fld, int w, int bias, boolean isFirst) {
         String prefix = prefixOf(isFirst);
         switch (fld.getCheck()) {
             case None:
@@ -55,10 +56,22 @@ public class ScalaFieldCustom extends ActionField<FieldCustom> implements ScalaF
         printf("  }%n");
         defaultOnNull(fld);
         printf("  final def %s_=(s: String): Unit = {%n", fld.getName());
-        if (ga.setCheck) chkSetter(fld);
         val align = fld.getAlign();
-        printf("    abc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', ' ')%n",
-            pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar());
+        if (ga.setCheck) {
+            printf("    val r = normalize(s, OverflowAction.%s, UnderflowAction.%s, '%c', '%c', %s, %d)%n",
+                fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align),
+                fld.getPadChar(), fld.getInitChar(),
+                pos.apply(fld.getOffset()), fld.getLength()
+                );
+            chkSetter(fld);
+            printf("    abc(r, %s, %d)%n",
+                pos.apply(fld.getOffset()), fld.getLength(), fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align), fld.getPadChar());
+        } else {
+            printf("    abc(s, %s, %d, OverflowAction.%s, UnderflowAction.%s, '%c', '%s')%n",
+                pos.apply(fld.getOffset()), fld.getLength(),
+                fld.getOnOverflow().of(align), fld.getOnUnderflow().of(align),
+                fld.getPadChar(), fld.getInitChar());
+        }
         printf("  }%n");
         popIndent();
     }
@@ -68,19 +81,19 @@ public class ScalaFieldCustom extends ActionField<FieldCustom> implements ScalaF
             case None:
                 break;
             case Ascii:
-                printf("    testAscii(s)%n");
+                printf("    testAscii(r)%n");
                 break;
             case Latin1:
-                printf("    testLatin(s)%n");
+                printf("    testLatin(r)%n");
                 break;
             case Valid:
-                printf("    testValid(s)%n");
+                printf("    testValid(r)%n");
                 break;
             case Digit:
-                printf("    testDigit(s)%n");
+                printf("    testDigit(r)%n");
                 break;
             case DigitOrBlank:
-                printf("    testDigitBlank(s)%n");
+                printf("    testDigitBlank(r)%n");
                 break;
         }
     }

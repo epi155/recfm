@@ -14,15 +14,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class ValidateFieldJava extends ValidateField {
     private final ActionField<FieldAbc> delegateAbc;
     private final ActionField<FieldNum> delegateNum;
-    private final ActionField<FieldCustom> delegateUse;
+    private final ActionField<FieldCustom> delegateCus;
     private final StemField<FieldFiller> delegateFil;
     private final StemField<FieldConstant> delegateVal;
+    private final ActionField<FieldDomain> delegateDom;
 
     public ValidateFieldJava(PrintWriter pw, String name, Defaults defaults) {
         super(pw, name, defaults);
         this.delegateAbc = new JavaFieldAbc(pw, defaults);
         this.delegateNum = new JavaFieldNum(pw);
-        this.delegateUse = new JavaFieldCustom(pw);
+        this.delegateCus = new JavaFieldCustom(pw);
+        this.delegateDom = new JavaFieldDomain(pw);
         this.delegateFil = new JavaFieldFiller(pw, defaults);
         this.delegateVal = new JavaFieldConstant(pw);
     }
@@ -59,8 +61,14 @@ class ValidateFieldJava extends ValidateField {
     }
 
     @Override
-    protected void validateUser(FieldCustom fld, int w, int bias, boolean isFirst) {
+    protected void validateDom(FieldDomain fld, int w, int bias, boolean isFirst) {
         if (fld.isRedefines()) return;
-        delegateUse.validate(fld, w, bias, isFirst);
+        delegateDom.validate(fld, w, bias, isFirst);
+    }
+
+    @Override
+    protected void validateCus(FieldCustom fld, int w, int bias, boolean isFirst) {
+        if (fld.isRedefines()) return;
+        delegateCus.validate(fld, w, bias, isFirst);
     }
 }

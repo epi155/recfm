@@ -1,3 +1,3 @@
 public enum OverflowAction {
-    TruncRight, TruncLeft, Error
+    TruncR, TruncL, Error
 }

@@ -107,7 +107,7 @@ public abstract class LanguageContext {
                 if (na.isRedefines()) continue;
                 if (na instanceof SettableField) {
                     SettableField fs = (SettableField) na;
-                    lst.add(dump.newPicture(px + fs.getName(), bias + fs.getOffset(), fs.getLength(), fs.picure()));
+                    lst.add(dump.newPicture(px + fs.getName(), bias + fs.getOffset(), fs.getLength(), fs.picture()));
                 } else if (na instanceof FieldOccurs) {
                     FieldOccurs fo = (FieldOccurs) na;
                     lst.addAll(occursDump(px + fo.getName(), fo.getTimes(), fo.getLength(), fo.getFields(), bias));
@@ -121,7 +121,7 @@ public abstract class LanguageContext {
 
     protected abstract void generateClass(ClassDefine define, String cwd, String packageName, GenerateArgs ga, Defaults defaults);
 
-    protected abstract AccessField accessField(PrintWriter pw, IntFunction<String> pos);
+    protected abstract AccessField accessField(PrintWriter pw, IntFunction<String> pos, String name);
 
     protected abstract InitializeField initializeField(PrintWriter pw, ClassDefine struct, Defaults defaults);
 

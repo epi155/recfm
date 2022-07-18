@@ -12,23 +12,30 @@ import java.io.PrintWriter;
 public class InitializeFieldScala extends InitializeField {
     private final ActionField<FieldAbc> delegateAbc;
     private final ActionField<FieldNum> delegateNum;
-    private final ActionField<FieldCustom> delegateUse;
+    private final ActionField<FieldCustom> delegateCus;
     private final StemField<FieldFiller> delegateFil;
     private final StemField<FieldConstant> delegateVal;
+    private final ActionField<FieldDomain> delegateDom;
 
     public InitializeFieldScala(PrintWriter pw, ClassDefine struct, Defaults defaults) {
         super(pw, struct, defaults);
         this.delegateAbc = new ScalaFieldAbc(pw, defaults);
         this.delegateNum = new ScalaFieldNum(pw);
-        this.delegateUse = new ScalaFieldCustom(pw);
+        this.delegateCus = new ScalaFieldCustom(pw);
+        this.delegateDom = new ScalaFieldDomain(pw, struct.getName());
         this.delegateFil = new ScalaFieldFiller(pw, defaults);
         this.delegateVal = new ScalaFieldConstant(pw, struct.getName());
     }
 
     @Override
-    protected void initializeUser(FieldCustom fld, int bias) {
+    protected void initializeDom(FieldDomain fld, int bias) {
+        delegateDom.initialize(fld, bias);
+    }
+
+    @Override
+    protected void initializeCus(FieldCustom fld, int bias) {
         if (fld.isRedefines()) return;
-        delegateUse.initialize(fld, bias);
+        delegateCus.initialize(fld, bias);
     }
 
     @Override

@@ -5,7 +5,6 @@ import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.type.CheckChar;
 import io.github.epi155.recfm.type.Defaults;
 import io.github.epi155.recfm.type.FieldAbc;
-import io.github.epi155.recfm.type.SettableField;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,20 +69,6 @@ public class JavaFieldAbc extends ActionField<FieldAbc> implements JavaFieldTool
         popIndent();
     }
 
-
-    private void docGetter(@NotNull SettableField fld) {
-        printf("    /**%n");
-        printf("     * Abc @%d+%d%n", fld.getOffset(), fld.getLength());
-        printf("     * @return string value%n");
-        printf("     */%n");
-    }
-
-    private void docSetter(@NotNull SettableField fld) {
-        printf("    /**%n");
-        printf("     * Abc @%d+%d%n", fld.getOffset(), fld.getLength());
-        printf("     * @param s string value%n");
-        printf("     */%n");
-    }
 
     private void chkGetter(@NotNull FieldAbc fld) {
         switch (fld.getCheck()) {

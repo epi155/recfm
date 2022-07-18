@@ -3,14 +3,11 @@ package io.github.epi155.recfm.type;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.StringEscapeUtils;
-
-import java.util.function.BiConsumer;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class FieldConstant extends NakedField implements SelfCheck, HaveConstants, CheckAware {
+public class FieldConstant extends NakedField implements SelfCheck, CheckAware {
     private String value;
     private boolean audit;
 
@@ -26,10 +23,10 @@ public class FieldConstant extends NakedField implements SelfCheck, HaveConstant
         }
     }
 
-    @Override
-    public void writeConstant(BiConsumer<String, String> consumer) {
-        String x = String.format("VALUE_AT%dPLUS%d", getOffset(), getLength());
-        String y = String.format("\"%s\"", StringEscapeUtils.escapeJava(getValue()));
-        consumer.accept(x, y);
-    }
+//    @Override
+//    public void writeConstant(BiConsumer<String, String> consumer) {
+//        String x = String.format("VALUE_AT%dPLUS%d", getOffset(), getLength());
+//        String y = String.format("\"%s\"", StringEscapeUtils.escapeJava(getValue()));
+//        consumer.accept(x, y);
+//    }
 }

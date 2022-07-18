@@ -4,9 +4,10 @@
 
     <groupId>io.github.epi155</groupId>
     <artifactId>recfm</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2-SNAPSHOT</version>
 
     <!-- mvn versions:set -DnewVersion=x.y.z -->
+    <!-- mvn release:prepare -->
     <!-- mvn release:update-versions -->
 
     <modules>

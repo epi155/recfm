@@ -12,7 +12,8 @@ import java.io.PrintWriter;
 class InitializeFieldJava extends InitializeField {
     private final ActionField<FieldAbc> delegateAbc;
     private final ActionField<FieldNum> delegateNum;
-    private final ActionField<FieldCustom> delegateUse;
+    private final ActionField<FieldCustom> delegateCus;
+    private final ActionField<FieldDomain> delegateDom;
     private final StemField<FieldFiller> delegateFil;
     private final StemField<FieldConstant> delegateVal;
 
@@ -20,7 +21,8 @@ class InitializeFieldJava extends InitializeField {
         super(pw, struct, defaults);
         this.delegateAbc = new JavaFieldAbc(pw, defaults);
         this.delegateNum = new JavaFieldNum(pw);
-        this.delegateUse = new JavaFieldCustom(pw);
+        this.delegateCus = new JavaFieldCustom(pw);
+        this.delegateDom = new JavaFieldDomain(pw);
         this.delegateFil = new JavaFieldFiller(pw, defaults);
         this.delegateVal = new JavaFieldConstant(pw);
     }
@@ -34,9 +36,15 @@ class InitializeFieldJava extends InitializeField {
     }
 
     @Override
-    protected void initializeUser(FieldCustom fld, int bias) {
+    protected void initializeDom(FieldDomain fld, int bias) {
         if (fld.isRedefines()) return;
-        delegateUse.initialize(fld, bias);
+        delegateDom.initialize(fld, bias);
+    }
+
+    @Override
+    protected void initializeCus(FieldCustom fld, int bias) {
+        if (fld.isRedefines()) return;
+        delegateCus.initialize(fld, bias);
     }
 
     protected void initializeGrp(FieldGroup fld, int bias) {

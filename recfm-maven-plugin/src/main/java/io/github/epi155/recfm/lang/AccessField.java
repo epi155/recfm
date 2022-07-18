@@ -29,10 +29,14 @@ public abstract class AccessField {
             createMethodsNum((FieldNum) fld, indent, ga);
         } else if (fld instanceof FieldCustom) {
             createMethodsCustom((FieldCustom) fld, indent, ga);
+        } else if (fld instanceof FieldDomain) {
+            createMethodsDomain((FieldDomain) fld, indent, ga);
         } else {
             log.warn("Unknown field type {}: {}", fld.getName(), fld.getClass().getSimpleName());
         }
     }
+
+    protected abstract void createMethodsDomain(FieldDomain fld, int indent, GenerateArgs ga);
 
     /**
      * methods for numeric fields
@@ -59,7 +63,7 @@ public abstract class AccessField {
      *
      * @param fld field
      */
-    protected void defaultOnNull(@NotNull SettableField fld) {
+    protected void defaultOnNull(@NotNull FloatingField fld) {
         if (fld.getOnOverflow() == null) fld.setOnOverflow(OverflowAction.Trunc);
         if (fld.getOnUnderflow() == null) fld.setOnUnderflow(UnderflowAction.Pad);
     }

@@ -5,6 +5,7 @@ import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.type.FieldNum;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.util.function.IntFunction;
@@ -20,12 +21,12 @@ public class ScalaFieldNum extends ActionField<FieldNum> implements ScalaFieldTo
     }
 
     @Override
-    public void initialize(FieldNum fld, int bias) {
+    public void initialize(@NotNull FieldNum fld, int bias) {
         printf("    fill(%5d, %4d, '0')%n", fld.getOffset() - bias, fld.getLength());
     }
 
     @Override
-    public void validate(FieldNum fld, int w, int bias, boolean isFirst) {
+    public void validate(@NotNull FieldNum fld, int w, int bias, boolean isFirst) {
         String prefix = prefixOf(isFirst);
         printf("%s checkDigit(\"%s\"%s, %5d, %4d, handler)%n", prefix, fld.getName(), fld.pad(w), fld.getOffset() - bias, fld.getLength());
     }

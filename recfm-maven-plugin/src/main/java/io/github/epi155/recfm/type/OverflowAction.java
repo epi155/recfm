@@ -5,6 +5,6 @@ public enum OverflowAction {
 
     public String of(AlignMode align) {
         if (this == Error) return name();
-        return name() + align.name();
+        return name() + align.code;
     }
 }

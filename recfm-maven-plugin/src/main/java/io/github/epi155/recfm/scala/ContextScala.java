@@ -10,6 +10,7 @@ import io.github.epi155.recfm.lang.ValidateField;
 import io.github.epi155.recfm.type.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -36,7 +37,7 @@ public class ContextScala extends LanguageContext implements IndentAble {
     }
 
     @Override
-    protected void generateClass(ClassDefine define, String cwd, String wrtPackage, GenerateArgs ga, Defaults defaults) {
+    protected void generateClass(@NotNull ClassDefine define, String cwd, String wrtPackage, @NotNull GenerateArgs ga, Defaults defaults) {
         log.info("- Prepare class {} ...", define.getName());
         val classFile = new File(cwd + File.separator + define.getName() + ".scala");
 
@@ -63,8 +64,8 @@ public class ContextScala extends LanguageContext implements IndentAble {
     }
 
     @Override
-    protected AccessField accessField(PrintWriter pw, IntFunction<String> pos) {
-        return new AccessFieldScala(pw, pos);
+    protected AccessField accessField(PrintWriter pw, IntFunction<String> pos, String name) {
+        return new AccessFieldScala(pw, pos, name);
     }
 
     @Override
@@ -87,23 +88,24 @@ public class ContextScala extends LanguageContext implements IndentAble {
         pw.printf("package %s%n%n", packg);
     }
 
-    private void writeImport(PrintWriter pw, String packg) {
+    private void writeImport(@NotNull PrintWriter pw, String packg) {
         pw.printf("import %s.{FieldValidateHandler, FixRecord, OverflowAction, UnderflowAction}%n", packg);
         pw.println();
     }
 
     private void generateClassCode(PrintWriter pw, ClassDefine struct, GenerateArgs ga, Defaults defaults, IntFunction<String> pos) {
         writeBeginObject(pw, struct);
-        writeConstant(pw, struct, 0);
+        writeConstant(pw, struct);
         writeFactories(pw, struct);
         writeEndClass(pw, 0);
 
         writeBeginClass(pw, struct);
         struct.getFields().forEach(it -> {
             if (it instanceof SelfCheck) ((SelfCheck) it).selfCheck();
-            if (it instanceof ParentFields) generateGroupCode((ParentFields) it, pw, 2, ga, defaults, pos);
+            if (it instanceof ParentFields) generateGroupCode((ParentFields) it, pw, 2, ga, defaults, pos, struct.getName());
         });
-        val access = accessField(pw, pos);
+        val objName = struct.getName();
+        val access = accessField(pw, pos, objName);
         writeCtorVoid(pw, struct.getName());
         writeCtorParm(pw, struct);
         writeInitializer(pw, struct, defaults);
@@ -136,23 +138,30 @@ public class ContextScala extends LanguageContext implements IndentAble {
 
     //    def of(s: String) = new SuezHead(s)
 //    def of(r: FixRecord) = new SuezHead(r)
-    private void writeFactories(PrintWriter pw, ClassDefine struct) {
+    private void writeFactories(@NotNull PrintWriter pw, @NotNull ClassDefine struct) {
         pw.printf("  def decode(s: String) = new %s(s)%n", struct.getName());
         pw.printf("  def of(r: FixRecord) = new %s(r)%n", struct.getName());
     }
 
-    private void generateGroupCode(ParentFields fld, PrintWriter pw, int indent, GenerateArgs ga, Defaults defaults, IntFunction<String> pos) {
+    private void generateGroupCode(
+        ParentFields fld,
+        PrintWriter pw,
+        int indent,
+        GenerateArgs ga,
+        Defaults defaults,
+        IntFunction<String> pos,
+        String name) {
         AccessField access;
         if (fld instanceof FieldOccurs) {
             writeBeginClassOccurs(pw, (FieldOccurs) fld, indent);
-            access = accessField(pw, n -> String.format("%d+shift", n - 1));
+            access = accessField(pw, n -> String.format("%d+shift", n - 1), name);
         } else /* fld instanceof FieldGroup */ {
             writeBeginClassGroup(pw, fld.getName(), indent);
-            access = accessField(pw, pos);
+            access = accessField(pw, pos, name);
         }
         fld.getFields().forEach(it -> {
             if (it instanceof SelfCheck) ((SelfCheck) it).selfCheck();
-            if (it instanceof ParentFields) generateGroupCode((ParentFields) it, pw, indent + 2, ga, defaults, pos);
+            if (it instanceof ParentFields) generateGroupCode((ParentFields) it, pw, indent + 2, ga, defaults, pos, name);
         });
         fld.getFields().forEach(it -> {
             if (it instanceof SettableField) access.createMethods((SettableField) it, indent, ga, defaults.getCheck());
@@ -177,25 +186,27 @@ public class ContextScala extends LanguageContext implements IndentAble {
         pw.printf("class %s {%n", capName);
     }
 
-    private void writeBeginClassOccurs(PrintWriter pw, FieldOccurs fld, int indent) {
+    private void writeBeginClassOccurs(PrintWriter pw, @NotNull FieldOccurs fld, int indent) {
         String capName = capitalize(fld.getName());
         indent(pw, indent);
         pw.printf("class %s(private val shift: Int) {%n", capName);
     }
 
-    private void writeClassOccurs(PrintWriter pw, FieldOccurs fld, int indent) {
+    private void writeClassOccurs(PrintWriter pw, @NotNull FieldOccurs fld, int indent) {
         String capName = capitalize(fld.getName());
         indent(pw, indent);
-        pw.printf("val %s = Array[%s](%n", fld.getName(), capName);
+        pw.printf("private val _%s = Array[%s](%n", fld.getName(), capName);
         val times = fld.getTimes();
         for (int k = 0, j = times, shift = 0; k < times; k++, j--, shift += fld.getLength()) {
             indent(pw, indent);
             pw.printf("  new this.%s(%d)%s%n", capName, shift, (j > 1 ? "," : ")"));
         }
+        indent(pw, indent);
+        pw.printf("final def %1$s(k: Int): %2$s = _%1$s(k-1)%n", fld.getName(), capName);
         pw.println();
     }
 
-    private void writeValidator(PrintWriter pw, ClassDefine struct, Defaults defaults) {
+    private void writeValidator(PrintWriter pw, @NotNull ClassDefine struct, Defaults defaults) {
         int padWidth = struct.evalPadWidth(6);
         val validator = validateField(pw, struct.getName(), defaults);
         pw.printf("  override protected def validateFields(handler: FieldValidateHandler): Boolean = {%n");
@@ -224,11 +235,11 @@ public class ContextScala extends LanguageContext implements IndentAble {
         closeBrace(pw);
     }
 
-    private void writeCtorVoid(PrintWriter pw, String name) {
+    private void writeCtorVoid(@NotNull PrintWriter pw, String name) {
         pw.printf("  def this() = this(%s.LRECL, null, null, false, false)%n", name);
     }
 
-    private void writeCtorParm(PrintWriter pw, ClassDefine define) {
+    private void writeCtorParm(@NotNull PrintWriter pw, @NotNull ClassDefine define) {
         define.onOverflowDefault(LoadOverflowAction.Trunc);
         define.onUnderflowDefault(LoadUnderflowAction.Pad);
         pw.printf("  private def this(s: String) = this(%s.LRECL, s, null, %b, %b)%n",
@@ -237,14 +248,14 @@ public class ContextScala extends LanguageContext implements IndentAble {
             define.getName(), define.onOverflowThrowError(), define.onUnderflowThrowError());
     }
 
-    private void writeInitializer(PrintWriter pw, ClassDefine struct, Defaults defaults) {
+    private void writeInitializer(@NotNull PrintWriter pw, ClassDefine struct, Defaults defaults) {
         pw.printf("  override protected def initialize(): Unit = {%n");
         val initializer = initializeField(pw, struct, defaults);
         struct.getFields().forEach(it -> initializer.field(it, 1));
         closeBrace(pw);
     }
 
-    private void closeBrace(PrintWriter pw) {
+    private void closeBrace(@NotNull PrintWriter pw) {
         pw.printf("  }%n%n");
     }
 
@@ -254,21 +265,22 @@ public class ContextScala extends LanguageContext implements IndentAble {
         pw.println();
     }
 
-    private void writeConstant(PrintWriter pw, ParentFields struct, int deep) {
-        if (deep == 0)
-            pw.printf("  val LRECL = %d%n", struct.getLength());
-        struct.getFields().forEach(it -> {
-            if (it instanceof HaveConstants)
-                ((HaveConstants) it).writeConstant((u, v) -> pw.printf("  private val %s = %s%n", u, v));
-            if (it instanceof ParentFields) writeConstant(pw, (ParentFields) it, deep + 1);
-        });
+    private void writeConstant(@NotNull PrintWriter pw, @NotNull ParentFields struct) {
+        pw.printf("  val LRECL = %d%n", struct.getLength());
+        val preparer = prepareField(pw, struct);
+        struct.getFields().forEach(it -> preparer.field(it, 1));
     }
 
-    private void writeBeginObject(PrintWriter pw, ClassDefine struct) {
+    @Contract("_, _ -> new")
+    private @NotNull PrepareFieldScala prepareField(PrintWriter pw, ParentFields struct) {
+        return new PrepareFieldScala(pw, struct);
+    }
+
+    private void writeBeginObject(@NotNull PrintWriter pw, @NotNull ClassDefine struct) {
         pw.printf("object %s {%n", struct.getName());
     }
 
-    private void writeBeginClass(PrintWriter pw, ClassDefine struct) {
+    private void writeBeginClass(@NotNull PrintWriter pw, @NotNull ClassDefine struct) {
         pw.printf("class %s private (length: Int, s: String, r: FixRecord, overflowError: Boolean, underflowError: Boolean)\n" +
             "  extends FixRecord(length, s, r, overflowError, underflowError) {%n", struct.getName());
     }

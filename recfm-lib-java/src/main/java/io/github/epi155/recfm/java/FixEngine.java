@@ -1,5 +1,6 @@
 package io.github.epi155.recfm.java;
 
+import java.nio.CharBuffer;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
@@ -97,40 +98,58 @@ abstract class FixEngine {
         }
     }
 
+    protected static void testArray(String value, String[] domain) {
+        if (value == null) return;
+        if (Arrays.binarySearch(domain, value) < 0)
+            throw new FixError.NotDomainException(value);
+    }
+
     private void fillChar(int offset, int count, char fill) {
         for (int u = 0, v = offset; u < count; u++, v++) {
             rawData[v] = fill;
         }
     }
 
-    protected void setAbc(String s, int offset, int count, OverflowAction overflowAction, UnderflowAction underflowAction, char pad, char init) {
+    protected static String normalize(String s,
+                               OverflowAction overflowAction,
+                               UnderflowAction underflowAction,
+                               char pad, char init,
+                               int offset, int count) {
         if (s == null) {
             if (underflowAction == UnderflowAction.Error)
                 throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
-            fillChar(offset, count, init);
+            return fill(count, init);
         } else if (s.length() == count)
-            setAsIs(s, offset);
+            return s;
         else if (s.length() < count) {
             switch (underflowAction) {
-                case PadRight:
-                    padToRight(s, offset, count, pad);
-                    break;
-                case PadLeft:
-                    padToLeft(s, offset, count, pad);
-                    break;
+                case PadR:
+                    return rpad(s, count, pad);
+                case PadL:
+                    return lpad(s, count, pad);
                 case Error:
                     throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
             }
         } else switch (overflowAction) {
-            case TruncRight:
-                truncRight(s, offset, count);
-                break;
-            case TruncLeft:
-                truncLeft(s, offset, count);
-                break;
+            case TruncR:
+                return rtrunc(s, count);
+            case TruncL:
+                return ltrunc(s, count);
             case Error:
                 throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
         }
+        return null; // dear branch (?)
+    }
+
+    private static String fill(int t, char pad) {
+        return CharBuffer.allocate( t ).toString().replace( '\0', pad );
+    }
+
+    private static String rpad(String s, int t, char pad) {
+        int len = s.length();
+        if (len > t) return s.substring(0, t);
+        if (len == t) return s;
+        return s + CharBuffer.allocate( t-len ).toString().replace( '\0', pad );
     }
 
     protected void fill(int offset, int count, char c) {
@@ -220,34 +239,11 @@ abstract class FixEngine {
         return false;
     }
 
-    protected void setNum(String s, int offset, int count, OverflowAction ovfl, UnderflowAction unfl, char fill) {
-        if (s == null) {
-            if (unfl == UnderflowAction.Error)
-                throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
-            fillChar(offset, count, fill);
-        } else if (s.length() == count)
-            setAsIs(s, offset);
-        else if (s.length() < count) {
-            switch (unfl) {
-                case PadRight:
-                    padToRight(s, offset, count, '0');
-                    break;
-                case PadLeft:
-                    padToLeft(s, offset, count, '0');
-                    break;
-                case Error:
-                    throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
-            }
-        } else switch (ovfl) {
-            case TruncRight:
-                truncRight(s, offset, count);
-                break;
-            case TruncLeft:
-                truncLeft(s, offset, count);
-                break;
-            case Error:
-                throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
-        }
+    private static String lpad(String s, int t, char pad) {
+        int len = s.length();
+        if (len > t) return s.substring(len-t);
+        if (len == t) return s;
+        return CharBuffer.allocate( t-len ).toString().replace( '\0', pad ) + s;
     }
 
     private void padToLeft(String s, int offset, int count, char c) {
@@ -261,6 +257,10 @@ abstract class FixEngine {
         }
     }
 
+    private static String rtrunc(String s, int t) {
+        int len = s.length();
+        return (len > t) ? s.substring(0, t) : s;
+    }
     protected boolean checkAscii(String name, int offset, int count, FieldValidateHandler handler) {
         for (int u = offset, v = 0; v < count; u++, v++) {
             char c = rawData[u];
@@ -359,6 +359,11 @@ abstract class FixEngine {
         }
     }
 
+    private static String ltrunc(String s, int t) {
+        int len = s.length();
+        return (len > t) ? s.substring(len-t) : s;
+    }
+
     protected boolean checkValid(String name, int offset, int count, FieldValidateHandler handler) {
         for (int u = offset, v = 0; v < count; u++, v++) {
             char c = rawData[u];
@@ -421,5 +426,91 @@ abstract class FixEngine {
             sb.append(c);
         }
         return sb.toString();
+    }
+
+    protected void setAbc(String s, int offset, int count) {
+        if (s == null) {
+            throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
+        } else if (s.length() == count)
+            setAsIs(s, offset);
+        else if (s.length() < count) {
+            throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+        } else  {
+            throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+        }
+    }
+
+    protected void setAbc(String s, int offset, int count, OverflowAction overflowAction, UnderflowAction underflowAction, char pad, char init) {
+        if (s == null) {
+            if (underflowAction == UnderflowAction.Error)
+                throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
+            fillChar(offset, count, init);
+        } else if (s.length() == count)
+            setAsIs(s, offset);
+        else if (s.length() < count) {
+            switch (underflowAction) {
+                case PadR:
+                    padToRight(s, offset, count, pad);
+                    break;
+                case PadL:
+                    padToLeft(s, offset, count, pad);
+                    break;
+                case Error:
+                    throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+            }
+        } else switch (overflowAction) {
+            case TruncR:
+                truncRight(s, offset, count);
+                break;
+            case TruncL:
+                truncLeft(s, offset, count);
+                break;
+            case Error:
+                throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+        }
+    }
+
+    protected void setNum(String s, int offset, int count, OverflowAction ovfl, UnderflowAction unfl, char fill) {
+        if (s == null) {
+            if (unfl == UnderflowAction.Error)
+                throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
+            fillChar(offset, count, fill);
+        } else if (s.length() == count)
+            setAsIs(s, offset);
+        else if (s.length() < count) {
+            switch (unfl) {
+                case PadR:
+                    padToRight(s, offset, count, '0');
+                    break;
+                case PadL:
+                    padToLeft(s, offset, count, '0');
+                    break;
+                case Error:
+                    throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+            }
+        } else switch (ovfl) {
+            case TruncR:
+                truncRight(s, offset, count);
+                break;
+            case TruncL:
+                truncLeft(s, offset, count);
+                break;
+            case Error:
+                throw new FixError.FieldOverFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + s.length());
+        }
+    }
+
+    protected boolean checkArray(String name, int offset, int count, FieldValidateHandler handler, String[] domain) {
+        if (Arrays.binarySearch(domain, getAbc(offset, count)) <0) {
+            handler.error(name, offset, count, offset, ValidateError.NotDomain);
+            return true;
+        }
+        return false;
+    }
+
+    protected void testArray(int offset, int count, String[] domain) {
+        String value = getAbc(offset, count);
+        if (Arrays.binarySearch(domain, value) < 0)
+            throw new FixError.NotDomainException(offset + 1, value);
     }
 }

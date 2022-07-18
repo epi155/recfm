@@ -5,14 +5,14 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class FieldCustom extends SettableField implements IndentAble {
+public class FieldCustom extends FloatingField /*implements IndentAble*/ {
     private char padChar = ' ';
     private char initChar = ' ';
     private CheckUser check = CheckUser.Ascii;
-    private AlignMode align = AlignMode.Left;
+    private AlignMode align = AlignMode.LFT;
 
     @Override
-    public String picure() {
+    public String picture() {
         return "X";
     }
 }

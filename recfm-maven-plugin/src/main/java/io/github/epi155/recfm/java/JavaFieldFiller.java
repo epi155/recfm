@@ -4,6 +4,7 @@ import io.github.epi155.recfm.lang.StemField;
 import io.github.epi155.recfm.type.Defaults;
 import io.github.epi155.recfm.type.FieldFiller;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 
@@ -16,16 +17,16 @@ public class JavaFieldFiller extends StemField<FieldFiller> implements JavaField
     }
 
     @Override
-    public void initialize(FieldFiller fld, int bias) {
+    public void initialize(@NotNull FieldFiller fld, int bias) {
         char c = fld.getFillChar() == null ? defaults.getFillChar() : fld.getFillChar();
         printf("        fill(%5d, %4d, '%s');%n",
             fld.getOffset() - bias, fld.getLength(), StringEscapeUtils.escapeJava(String.valueOf(c)));
     }
 
     @Override
-    public void validate(FieldFiller fld, int w, int bias, boolean isFirst) {
+    public void validate(@NotNull FieldFiller fld, int w, int bias, boolean isFirst) {
         String prefix = prefixOf(isFirst);
-        switch (fld.getCheck() == null ? defaults.getCheck() : fld.getCheck()) {
+        switch (fld.getCheck()) {
             case None:
                 break;
             case Ascii:

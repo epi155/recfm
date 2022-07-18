@@ -6,6 +6,7 @@ import io.github.epi155.recfm.type.CheckChar;
 import io.github.epi155.recfm.type.Defaults;
 import io.github.epi155.recfm.type.FieldAbc;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.util.function.IntFunction;
@@ -24,12 +25,12 @@ public class ScalaFieldAbc extends ActionField<FieldAbc> implements ScalaFieldTo
     }
 
     @Override
-    public void initialize(FieldAbc fld, int bias) {
+    public void initialize(@NotNull FieldAbc fld, int bias) {
         printf("    fill(%5d, %4d, ' ')%n", fld.getOffset() - bias, fld.getLength());
     }
 
     @Override
-    public void validate(FieldAbc fld, int w, int bias, boolean isFirst) {
+    public void validate(@NotNull FieldAbc fld, int w, int bias, boolean isFirst) {
         String prefix = prefixOf(isFirst);
         CheckChar chk = fld.getCheck();
         if (chk == null && defaults != null) chk = defaults.getCheck();

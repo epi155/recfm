@@ -7,7 +7,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public interface ParentFields extends IndentAble {
+public interface ParentFields /*extends IndentAble*/ {
     org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ParentFields.class);
 
     String getName();
@@ -19,8 +19,8 @@ public interface ParentFields extends IndentAble {
     default int evalPadWidth(int min) {
         NuclearInt wid = new NuclearInt(min);
         getFields().forEach(it -> {
-            if (it instanceof SettableField) {
-                SettableField fld = (SettableField) it;
+            if (it instanceof FloatingField) {
+                FloatingField fld = (FloatingField) it;
                 wid.maxOf(fld.getName().length());
             } else if (it instanceof ParentFields) {
                 wid.maxOf(((ParentFields) it).evalPadWidth(wid.get()));
