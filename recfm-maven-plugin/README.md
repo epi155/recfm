@@ -12,10 +12,11 @@
         * [4.3.1. Alphanumeric](#431)
         * [4.3.2. Numeric](#432)
         * [4.3.3. Custom](#433)
-        * [4.3.4. Filler](#434)
-        * [4.3.5. Constant](#435)
-        * [4.3.6. Group](#436)
-        * [4.3.7. Occurs](#437)
+        * [4.3.4. Domain](#434)
+        * [4.3.5. Filler](#435)
+        * [4.3.6. Constant](#436)
+        * [4.3.7. Group](#437)
+        * [4.3.8. Occurs](#438)
 * [5. Special methods](#5)
     * [5.1. `static ... decode(String s)`](#51)
     * [5.2. `String encode()`](#52)
@@ -361,13 +362,13 @@ Tag for custom field is `Cus`, a custom field is an extension of an alphanumeric
 |[audit](#fld.audit)     |   |boolean| default `false`                |
 |[onOverflow](#fld.ovfl) |   |[^1]   | default `Trunc`                |
 |[onUnderflow](#fld.unfl)|   |[^2]   | default `Pad`                  |
-|[padChar](#fld.pchr)    |   |char   | default value `' '`            |
-|[initChar](#fld.ichr)   |   |char   | default value `' '`            |
-|[check](#fld.ichk)      |   |[^4]   | default value `Ascii` |
-|[align](#fld.ialign)    |   |[^5]   | default value `Left` |
+|[padChar](#fld.pchr)    |   |char   | default `' '` (SPACE)          |
+|[initChar](#fld.ichr)   |   |char   | default `' '` (SPACE)          |
+|[check](#fld.ichk)      |   |[^4]   | default `Ascii`                |
+|[align](#fld.ialign)    |   |[^5]   | default `LFT`                  |
 
 [^4]: CheckC domain: None, Ascii, Latin1, Valid, Digit, DigitOrBlank
-[^5]: AlignC domain: Left, Right
+[^5]: AlignC domain: LFT, RGT
 
 <a name='fld.ichr'>initChar</a> indicates the character to use to initialize the field when the empty constructor is used.
 
@@ -386,7 +387,32 @@ are available:
 
 <a name='fld.ialign'>align</a> indicates the direction to align the field in case the supplied length is different from the available one.
 
-#### <a name="434">4.3.4. Filler </a>
+#### <a name="434">4.3.4. Domain </a>
+Tag for domain field is `Dom`, a domain field can only take a limited number of values, the possible attributes are:
+
+|attribute  |alt| type  | note                           |
+|-----------|---| :---: |--------------------------------|
+|[offset](#fld.offset)   |at | int    | **required**                   |
+|[length](#fld.length)   |len| int    | **required**                   |
+|[name](#fld.name)       |   |String  | **required**                   |
+|[redefines](#fld.redef) |red|boolean | default `false`                |
+|[audit](#fld.audit)     |   |boolean | default `false`                |
+|[items](#fld.items)     |   |String[]| **required**                   |
+
+<a name='fld.items'>items</a> indicates the list of possible values that the field can assume. All values supplied must have the expected length for the field. The first value supplied will be used to initialize the field.
+
+~~~yml
+  - name: Foo
+    length: 20
+    fields:
+      - !Abc { name: date    , at:  1, len: 10 }
+      - !Num { name: amount  , at: 11, len:  7, num: true }
+      - !Dom { name: currency, at: 18, len:  3, items: [ EUR, USD, CHF, GBP, JPY ] }
+~~~
+
+
+
+#### <a name="435">4.3.5. Filler </a>
 
 Tag for filler field is `Fil`, a filler is an area we are not interested in, neither getters nor setters are generated
 for it, the possible attributes are:
@@ -400,7 +426,7 @@ for it, the possible attributes are:
 
 <a name='fld.fill'>fillChar</a> indicates the character to use to initialize the area
 
-#### <a name="435">4.3.5. Constant </a>
+#### <a name="436">4.3.6. Constant </a>
 
 Tag for constant field is `Val`, even for a constant field the setters and getters are not generated, the controls
 verify that the present value coincides with the set one, the possible attributes are:
@@ -414,7 +440,7 @@ verify that the present value coincides with the set one, the possible attribute
 
 <a name='fld.val'>value</a> indicates the value with which to initialize the area
 
-#### <a name="436">4.3.6. Group </a>
+#### <a name="437">4.3.7. Group </a>
 
 Tag for group field is `Grp`, a group allows you to group multiple fields in order to structure the area, the possible
 attributes are:
@@ -459,7 +485,7 @@ Group usage example:
         val esitoComplTransaction=bar.transactionArea().getEsitoCompl();
 ~~~
 
-#### <a name="437">4.3.7. Occurs </a>
+#### <a name="438">4.3.8. Occurs </a>
 
 Tag for occurs field is `Occ`, an occurs is basically a repeated group, it is defined with the group data of the first
 occurrence and the number of occurrences, the possible attributes are:
