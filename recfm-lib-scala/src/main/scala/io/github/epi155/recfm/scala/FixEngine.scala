@@ -3,6 +3,7 @@ package io.github.epi155.recfm.scala
 import java.nio.CharBuffer
 import java.text.NumberFormat
 import java.util
+import scala.util.matching.Regex
 
 abstract class FixEngine(
                           length: Int,
@@ -416,7 +417,15 @@ abstract class FixEngine(
   }
 
   protected def checkArray(name: String, offset: Int, count: Int, handler: FieldValidateHandler, domain: Array[String]): Boolean = {
-    if (! domain.search(abc(offset, count)).isInstanceOf[scala.collection.Searching.Found]) {
+    if (!domain.search(abc(offset, count)).isInstanceOf[scala.collection.Searching.Found]) {
+      handler.error(name, offset, count, offset, ValidateError.NotDomain)
+      return true
+    }
+    false
+  }
+
+  protected def checkRegex(name: String, offset: Int, count: Int, handler: FieldValidateHandler, regex: Regex): Boolean = {
+    if (!regex.matches(abc(offset, count))) {
       handler.error(name, offset, count, offset, ValidateError.NotDomain)
       return true
     }
@@ -425,7 +434,12 @@ abstract class FixEngine(
 
   protected def testArray(offset: Int, count: Int, domain: Array[String]): Unit = {
     val value = abc(offset, count)
-    if (! domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+    if (!domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+  }
+
+  protected def testRegex(offset: Int, count: Int, regex: Regex): Unit = {
+    val value = abc(offset, count)
+    if (!regex.matches(value)) throw new FixError.NotMatchesException(value)
   }
 
   protected def testValid(offset: Int, count: Int): Unit = {
@@ -516,7 +530,12 @@ abstract class FixEngine(
 
   protected def testArray(value: String, domain: Array[String]): Unit = {
     if (value == null) return
-    if (! domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+    if (!domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+  }
+
+  protected def testRegex(value: String, regex: Regex): Unit = {
+    if (value == null) return
+    if (!regex.matches(value)) throw new FixError.NotMatchesException(value)
   }
 
   protected def testDigit(value: String): Unit = {
@@ -565,7 +584,7 @@ object FixEngine {
       if (underflowAction eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
       fill(count, init)
     }
-    else if (s.length == count) return s
+    else if (s.length == count) s
     else if (s.length < count) underflowAction match {
       case UnderflowAction.PadR =>
         rpad(s, count, pad)

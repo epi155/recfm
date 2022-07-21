@@ -112,57 +112,6 @@ abstract class FixEngine(
     }
   }
 
-  private def padToRight(s: String, offset: Int, count: Int, c: Char): Unit = {
-    var u = 0
-    var v = offset
-
-    while ( {
-      u < s.length
-    }) {
-      rawData(v) = s.charAt(u)
-
-      u += 1
-      v += 1
-    }
-
-    while ( {
-      u < count
-    }) {
-      rawData(v) = c
-
-      u += 1
-      v += 1
-    }
-  }
-
-  protected def num(s: String, offset: Int, count: Int, ovfl: OverflowAction.OverflowAction, unfl: UnderflowAction.UnderflowAction): Unit = {
-    if (s == null) {
-      if (unfl eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
-      fillChar(offset, count, '0')
-    }
-    else if (s.length == count) setAsIs(s, offset)
-    else if (s.length < count) unfl match {
-      case UnderflowAction.PadR =>
-        padToRight(s, offset, count, '0')
-
-      case UnderflowAction.PadL =>
-        padToLeft(s, offset, count, '0')
-
-      case UnderflowAction.Error =>
-        throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    }
-    else ovfl match {
-      case OverflowAction.TruncR =>
-        truncRight(s, offset, count)
-
-      case OverflowAction.TruncL =>
-        truncLeft(s, offset, count)
-
-      case OverflowAction.Error =>
-        throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    }
-  }
-
   protected def checkDigitBlank(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
     var c = rawData(offset)
     if (c == ' ') {
@@ -198,6 +147,47 @@ abstract class FixEngine(
     }
     else return true
     false
+  }
+
+  protected def testAscii(offset: Int, count: Int): Unit = {
+    var u = offset
+    var v = 0
+    while ( {
+      v < count
+    }) {
+      val c = rawData(u)
+      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
+      u += 1
+      v += 1
+    }
+  }
+
+  protected def num(s: String, offset: Int, count: Int, ovfl: OverflowAction.OverflowAction, unfl: UnderflowAction.UnderflowAction): Unit = {
+    if (s == null) {
+      if (unfl eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
+      fillChar(offset, count, '0')
+    }
+    else if (s.length == count) setAsIs(s, offset)
+    else if (s.length < count) unfl match {
+      case UnderflowAction.PadR =>
+        padToRight(s, offset, count, '0')
+
+      case UnderflowAction.PadL =>
+        padToLeft(s, offset, count, '0')
+
+      case UnderflowAction.Error =>
+        throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    }
+    else ovfl match {
+      case OverflowAction.TruncR =>
+        truncRight(s, offset, count)
+
+      case OverflowAction.TruncL =>
+        truncLeft(s, offset, count)
+
+      case OverflowAction.Error =>
+        throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    }
   }
 
   private def fillChar(offset: Int, count: Int, fill: Char): Unit = {
@@ -255,17 +245,10 @@ abstract class FixEngine(
     false
   }
 
-  protected def testAscii(offset: Int, count: Int): Unit = {
-    var u = offset
-    var v = 0
-    while ( {
-      v < count
-    }) {
-      val c = rawData(u)
-      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
-      u += 1
-      v += 1
-    }
+  protected def fill(offset: Int, count: Int, s: String): Unit = {
+    if (s.length == count) setAsIs(s, offset)
+    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
   }
 
   protected def checkAscii(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
@@ -286,10 +269,17 @@ abstract class FixEngine(
     false
   }
 
-  protected def fill(offset: Int, count: Int, s: String): Unit = {
-    if (s.length == count) setAsIs(s, offset)
-    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+  private def setAsIs(s: String, offset: Int): Unit = {
+    var u = 0
+    var v = offset
+    while ( {
+      u < s.length
+    }) {
+      rawData(v) = s.charAt(u)
+
+      u += 1
+      v += 1
+    }
   }
 
   protected def testDigit(offset: Int, count: Int): Unit = {
@@ -351,17 +341,12 @@ abstract class FixEngine(
     false
   }
 
-  private def setAsIs(s: String, offset: Int): Unit = {
-    var u = 0
-    var v = offset
-    while ( {
-      u < s.length
-    }) {
-      rawData(v) = s.charAt(u)
-
-      u += 1
-      v += 1
+  protected def checkRegex(name: String, offset: Int, count: Int, handler: FieldValidateHandler, regex: Regex): Boolean = {
+    if (!regex.matches(abc(offset, count))) {
+      handler.error(name, offset, count, offset, ValidateError.NotDomain)
+      return true
     }
+    false
   }
 
   protected def checkLatin(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
@@ -414,16 +399,26 @@ abstract class FixEngine(
   }
 
   protected def checkArray(name: String, offset: Int, count: Int, handler: FieldValidateHandler, domain: Array[String]): Boolean = {
-    if (! domain.search(abc(offset, count)).isInstanceOf[scala.collection.Searching.Found]) {
+    if (!domain.search(abc(offset, count)).isInstanceOf[scala.collection.Searching.Found]) {
       handler.error(name, offset, count, offset, ValidateError.NotDomain)
       return true
     }
     false
   }
 
+  protected def testRegex(offset: Int, count: Int, regex: Regex): Unit = {
+    val value = abc(offset, count)
+    if (!regex.matches(value)) throw new FixError.NotMatchesException(value)
+  }
+
   protected def testArray(offset: Int, count: Int, domain: Array[String]): Unit = {
     val value = abc(offset, count)
-    if (! domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+    if (!domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+  }
+
+  protected def testRegex(value: String, regex: Regex): Unit = {
+    if (value == null) return
+    if (!regex.matches(value)) throw new FixError.NotMatchesException(value)
   }
 
   protected def testValid(offset: Int, count: Int): Unit = {
@@ -514,7 +509,30 @@ abstract class FixEngine(
 
   protected def testArray(value: String, domain: Array[String]): Unit = {
     if (value == null) return
-    if (! domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+    if (!domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
+  }
+
+  private def padToRight(s: String, offset: Int, count: Int, c: Char): Unit = {
+    var u = 0
+    var v = offset
+
+    while ( {
+      u < s.length
+    }) {
+      rawData(v) = s.charAt(u)
+
+      u += 1
+      v += 1
+    }
+
+    while ( {
+      u < count
+    }) {
+      rawData(v) = c
+
+      u += 1
+      v += 1
+    }
   }
 
   protected def testDigit(value: String): Unit = {

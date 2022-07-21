@@ -74,6 +74,13 @@ class TestFields {
         Assertions.assertEquals("14159", foo.getCustom03(), "test align/truncate");
         Assertions.assertDoesNotThrow(() -> foo.setCustom03("three"), "test plain ascii");
         Assertions.assertThrows(FixError.NotAsciiException.class, () -> foo.setCustom03("Niña"), "test not ascii");
+
+        foo.setCustom07("12");
+        Assertions.assertEquals("12   ", foo.getCustom07(), "test align/pad");
+        foo.setCustom07("1415926535897932384626433832");
+        Assertions.assertEquals("14159", foo.getCustom07(), "test align/truncate");
+        Assertions.assertThrows(FixError.NotMatchesException.class, () -> foo.setCustom07("three"), "test not regex");
+
     }
 
     @Test

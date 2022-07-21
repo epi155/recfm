@@ -22,7 +22,7 @@ public class ValidateFieldScala extends ValidateField {
         super(pw, name, defaults);
         this.delegateAbc = new ScalaFieldAbc(pw, defaults);
         this.delegateNum = new ScalaFieldNum(pw);
-        this.delegateCus = new ScalaFieldCustom(pw);
+        this.delegateCus = new ScalaFieldCustom(pw, name);
         this.delegateDom = new ScalaFieldDomain(pw, name);
         this.delegateFil = new ScalaFieldFiller(pw, defaults);
         this.delegateVal = new ScalaFieldConstant(pw, name);

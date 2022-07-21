@@ -32,6 +32,10 @@ object FixError {
 
   class NotBlankException(c: Char, u: Int) extends FixError.SetterException(String.format("Offending char: U+%04X @+%d", c.toInt, u + 1), 3) {
   }
-  class NotDomainException(value: String) extends FixError.SetterException("Offemding value "+value, 3) {
+
+  class NotDomainException(value: String) extends FixError.SetterException("Offemding value " + value, 3) {
+  }
+
+  class NotMatchesException(value: String) extends FixError.SetterException("Offemding value " + value, 3) {
   }
 }

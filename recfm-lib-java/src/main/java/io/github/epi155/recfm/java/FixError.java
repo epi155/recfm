@@ -120,6 +120,17 @@ public class FixError {
             super(value, offset);
         }
     }
+
+    public static class NotMatchesException extends SetterException {
+        public NotMatchesException(String value) {
+            super(value);
+        }
+
+        public NotMatchesException(int offset, String value) {
+            super(value, offset);
+        }
+    }
+
     private static class Info {
         private final String method;
         private final String name;
@@ -129,4 +140,5 @@ public class FixError {
             this.method = method;
         }
     }
+
 }

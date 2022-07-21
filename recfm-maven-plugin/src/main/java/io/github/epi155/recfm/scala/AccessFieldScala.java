@@ -36,7 +36,7 @@ public class AccessFieldScala extends AccessField /*implements IndentAble*/ {
     public AccessFieldScala(PrintWriter pw, IntFunction<String> pos, String name) {
         delegateAbc = new ScalaFieldAbc(pw, pos);
         delegateNum = new ScalaFieldNum(pw, pos);
-        delegateCus = new ScalaFieldCustom(pw, pos);
+        delegateCus = new ScalaFieldCustom(pw, pos, name);
         delegateDom = new ScalaFieldDomain(pw, pos, name);
     }
 

@@ -3,6 +3,8 @@ package io.github.epi155.recfm.java;
 import java.nio.CharBuffer;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 abstract class FixEngine {
     private static final String FIELD_AT = "Field @";
@@ -104,6 +106,13 @@ abstract class FixEngine {
             throw new FixError.NotDomainException(value);
     }
 
+    protected static void testRegex(String value, Pattern pattern) {
+        if (value == null) return;
+        Matcher matcher = pattern.matcher(value);
+        if (!matcher.matches())
+            throw new FixError.NotMatchesException(value);
+    }
+
     private void fillChar(int offset, int count, char fill) {
         for (int u = 0, v = offset; u < count; u++, v++) {
             rawData[v] = fill;
@@ -111,10 +120,10 @@ abstract class FixEngine {
     }
 
     protected static String normalize(String s,
-                               OverflowAction overflowAction,
-                               UnderflowAction underflowAction,
-                               char pad, char init,
-                               int offset, int count) {
+                                      OverflowAction overflowAction,
+                                      UnderflowAction underflowAction,
+                                      char pad, char init,
+                                      int offset, int count) {
         if (s == null) {
             if (underflowAction == UnderflowAction.Error)
                 throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
@@ -501,8 +510,17 @@ abstract class FixEngine {
     }
 
     protected boolean checkArray(String name, int offset, int count, FieldValidateHandler handler, String[] domain) {
-        if (Arrays.binarySearch(domain, getAbc(offset, count)) <0) {
+        if (Arrays.binarySearch(domain, getAbc(offset, count)) < 0) {
             handler.error(name, offset, count, offset, ValidateError.NotDomain);
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean checkRegex(String name, int offset, int count, FieldValidateHandler handler, Pattern pattern) {
+        Matcher matcher = pattern.matcher(getAbc(offset, count));
+        if (!matcher.matches()) {
+            handler.error(name, offset, count, offset, ValidateError.Mismatch);
             return true;
         }
         return false;
@@ -512,5 +530,12 @@ abstract class FixEngine {
         String value = getAbc(offset, count);
         if (Arrays.binarySearch(domain, value) < 0)
             throw new FixError.NotDomainException(offset + 1, value);
+    }
+
+    protected void testRegex(int offset, int count, Pattern pattern) {
+        String value = getAbc(offset, count);
+        Matcher matcher = pattern.matcher(value);
+        if (!matcher.matches())
+            throw new FixError.NotMatchesException(offset + 1, value);
     }
 }

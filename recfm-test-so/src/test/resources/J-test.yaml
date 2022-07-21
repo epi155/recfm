@@ -19,7 +19,7 @@ classes:
       - !Cus { name: custom04  , at: 81, len: 5, align: LFT, init: ' ', pad: ' ', check: Latin1 }
       - !Cus { name: custom05  , at: 86, len: 5, align: LFT, init: ' ', pad: ' ', check: Valid }
       - !Cus { name: custom06  , at: 91, len: 5, align: LFT, init: ' ', pad: ' ', check: None }
-      - !Cus { name: custom07  , at: 96, len: 5, align: LFT, init: ' ', pad: ' ' }
+      - !Cus { name: custom07  , at: 96, len: 5, align: LFT, init: ' ', pad: ' ', regex: "[0-9a-f]{1,5}\\s*" }
 
       - !Dom { name: domain01 ,  at: 101, len: 3, items: [ EUR, USD, CHF, GBP, JPY, CNH, CNY, HKD, ARS, BRL, RUB ] }
       - !Abc { name: hackDom1  , at: 101, len: 3, red: true }

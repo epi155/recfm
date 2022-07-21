@@ -21,7 +21,7 @@ public class InitializeFieldScala extends InitializeField {
         super(pw, struct, defaults);
         this.delegateAbc = new ScalaFieldAbc(pw, defaults);
         this.delegateNum = new ScalaFieldNum(pw);
-        this.delegateCus = new ScalaFieldCustom(pw);
+        this.delegateCus = new ScalaFieldCustom(pw, struct.getName());
         this.delegateDom = new ScalaFieldDomain(pw, struct.getName());
         this.delegateFil = new ScalaFieldFiller(pw, defaults);
         this.delegateVal = new ScalaFieldConstant(pw, struct.getName());

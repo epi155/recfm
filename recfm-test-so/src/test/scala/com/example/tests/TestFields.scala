@@ -36,26 +36,50 @@ class TestFields extends AnyFunSuite {
     assert("00012" === foo.custom01)
     foo.custom01 = "1415926535897932384626433832"
     assert("33832" === foo.custom01)
-    assertThrows[FixError.NotDigitException] { foo.custom01 = "three" }
-    assertThrows[FixError.NotDigitException] { foo.custom01 = " " }
-    assertThrows[FixError.NotBlankException] { foo.custom01 = " 1234" }
+    assertThrows[FixError.NotDigitException] {
+      foo.custom01 = "three"
+    }
+    assertThrows[FixError.NotDigitException] {
+      foo.custom01 = " "
+    }
+    assertThrows[FixError.NotBlankException] {
+      foo.custom01 = " 1234"
+    }
     foo.custom01 = "     "
 
     foo.custom02 = "12"
     assert("00012" === foo.custom02)
     foo.custom02 = "1415926535897932384626433832"
     assert("33832" === foo.custom02)
-    assertThrows[FixError.NotDigitException] { foo.custom02 = "three" }
-    assertThrows[FixError.NotDigitException] { foo.custom02 = " " }
-    assertThrows[FixError.NotDigitException] { foo.custom02 = " 1234" }
-    assertThrows[FixError.NotDigitException] { foo.custom02 = "     " }
+    assertThrows[FixError.NotDigitException] {
+      foo.custom02 = "three"
+    }
+    assertThrows[FixError.NotDigitException] {
+      foo.custom02 = " "
+    }
+    assertThrows[FixError.NotDigitException] {
+      foo.custom02 = " 1234"
+    }
+    assertThrows[FixError.NotDigitException] {
+      foo.custom02 = "     "
+    }
 
     foo.custom03 = "12"
     assert("12   " === foo.custom03)
     foo.custom03 = "1415926535897932384626433832"
     assert("14159" === foo.custom03)
     foo.custom03 = "three"
-    assertThrows[FixError.NotAsciiException] { foo.custom03 = "Niña" }
+    assertThrows[FixError.NotAsciiException] {
+      foo.custom03 = "Niña"
+    }
+
+    foo.custom07 = "12"
+    assert("12   " === foo.custom07)
+    foo.custom07 = "1415926535897932384626433832"
+    assert("14159" === foo.custom07)
+    assertThrows[FixError.NotMatchesException] {
+      foo.custom07 = "three"
+    }
   }
 
   test("Dom") {

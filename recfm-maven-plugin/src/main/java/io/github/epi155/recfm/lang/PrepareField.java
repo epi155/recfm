@@ -19,7 +19,7 @@ public abstract class PrepareField {
         } else if (fld instanceof FieldNum) {
             // nop
         } else if (fld instanceof FieldCustom) {
-            // nop
+            prepareCus((FieldCustom) fld, bias);
         } else if (fld instanceof FieldDomain) {
             prepareDom((FieldDomain) fld, bias);
         } else if (fld instanceof FieldConstant) {
@@ -51,4 +51,7 @@ public abstract class PrepareField {
     protected abstract void prepareVal(FieldConstant fld, int bias);
 
     protected abstract void prepareDom(FieldDomain fld, int bias);
+
+    protected abstract void prepareCus(FieldCustom fld, int bias);
+
 }

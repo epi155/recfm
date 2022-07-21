@@ -59,6 +59,12 @@ public class FixError {
             this.message = String.format("%s.%s, offending value %s @%d", info.name, info.method, value, offset);
         }
 
+        SetterException(int ic, int kp) {
+            super();
+            Info info = arrangeStack();
+            this.message = String.format("%s.%s, offending char U+%04x @+%d", info.name, info.method, ic, kp);
+        }
+
         private Info arrangeStack() {
             fillInStackTrace();
             List<StackTraceElement> stack = new ArrayList<>(Arrays.asList(getStackTrace()));
@@ -70,12 +76,6 @@ public class FixError {
             } while ((!method.startsWith("get")) && (!method.startsWith("set")));
             setStackTrace(stack.toArray(new StackTraceElement[0]));
             return new Info(ste.getClassName(), method);
-        }
-
-        SetterException(int ic, int kp) {
-            super();
-            Info info = arrangeStack();
-            this.message = String.format("%s.%s, offending char U+%04x @+%d", info.name, info.method, ic, kp);
         }
 
         @Override
@@ -118,6 +118,15 @@ public class FixError {
             super(value, offset);
         }
     }
+    public static class NotMatchesException extends SetterException {
+        public NotMatchesException(String value) {
+            super(value);
+        }
+
+        public NotMatchesException(int offset, String value) {
+            super(value, offset);
+        }
+    }
     private static class Info {
         private final String method;
         private final String name;
@@ -127,4 +136,5 @@ public class FixError {
             this.method = method;
         }
     }
+
 }

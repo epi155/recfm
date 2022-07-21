@@ -4,19 +4,30 @@ import io.github.epi155.recfm.exec.GenerateArgs;
 import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.type.FieldCustom;
 import lombok.val;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.util.function.IntFunction;
 
 public class ScalaFieldCustom extends ActionField<FieldCustom> implements ScalaFieldTools {
-    public ScalaFieldCustom(PrintWriter pw, IntFunction<String> pos) {
-        super(pw, pos);
-    }
+    private final String name;
 
     public ScalaFieldCustom(PrintWriter pw) {
         super(pw);
+        this.name = null;
     }
+
+    public ScalaFieldCustom(PrintWriter pw, String name) {
+        super(pw);
+        this.name = name;
+    }
+
+    public ScalaFieldCustom(PrintWriter pw, IntFunction<String> pos, String name) {
+        super(pw, pos);
+        this.name = name;
+    }
+
 
     @Override
     public void initialize(@NotNull FieldCustom fld, int bias) {
@@ -26,6 +37,14 @@ public class ScalaFieldCustom extends ActionField<FieldCustom> implements ScalaF
     @Override
     public void validate(@NotNull FieldCustom fld, int w, int bias, boolean isFirst) {
         String prefix = prefixOf(isFirst);
+        if (fld.getRegex() != null) {
+            printf("%s checkRegex(\"%s\"%s, %5d, %4d, handler, %s.PATTERN_AT%dPLUS%d)%n", prefix,
+                fld.getName(), fld.pad(w),
+                fld.getOffset() - bias, fld.getLength(),
+                name, fld.getOffset(), fld.getLength()
+            );
+            return;
+        }
         switch (fld.getCheck()) {
             case None:
                 break;
@@ -77,6 +96,10 @@ public class ScalaFieldCustom extends ActionField<FieldCustom> implements ScalaF
     }
 
     private void chkSetter(FieldCustom fld) {
+        if (fld.getRegex() != null) {
+            printf("    testRegex(r, %s.PATTERN_AT%sPLUS%d)%n", name, pos.apply(fld.getOffset() + 1), fld.getLength());
+            return;
+        }
         switch (fld.getCheck()) {
             case None:
                 break;
@@ -99,6 +122,11 @@ public class ScalaFieldCustom extends ActionField<FieldCustom> implements ScalaF
     }
 
     private void chkGetter(FieldCustom fld) {
+        if (fld.getRegex() != null) {
+            printf("    testRegex(%1$s, %2$d, %3$s.PATTERN_AT%4$sPLUS%2$d)%n",
+                pos.apply(fld.getOffset()), fld.getLength(), name, pos.apply(fld.getOffset() + 1));
+            return;
+        }
         switch (fld.getCheck()) {
             case None:
                 break;
@@ -117,6 +145,15 @@ public class ScalaFieldCustom extends ActionField<FieldCustom> implements ScalaF
             case DigitOrBlank:
                 printf("    testDigitBlank(%s, %d)%n", pos.apply(fld.getOffset()), fld.getLength());
                 break;
+        }
+    }
+
+    @Override
+    public void prepare(@NotNull FieldCustom fld, int bias) {
+        val regex = fld.getRegex();
+        if (regex != null) {
+            printf("    private val PATTERN_AT%dPLUS%d = \"%s\".r%n",
+                fld.getOffset(), fld.getLength(), StringEscapeUtils.escapeJava(regex));
         }
     }
 }

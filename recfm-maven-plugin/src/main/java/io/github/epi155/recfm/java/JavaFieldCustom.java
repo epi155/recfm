@@ -4,6 +4,7 @@ import io.github.epi155.recfm.exec.GenerateArgs;
 import io.github.epi155.recfm.lang.ActionField;
 import io.github.epi155.recfm.type.FieldCustom;
 import lombok.val;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
@@ -26,6 +27,15 @@ public class JavaFieldCustom extends ActionField<FieldCustom> implements JavaFie
     @Override
     public void validate(@NotNull FieldCustom fld, int w, int bias, boolean isFirst) {
         String prefix = prefixOf(isFirst);
+        if (fld.getRegex() != null) {
+            printf("%s checkRegex(\"%s\"%s, %5d, %4d, handler, PATTERN_AT%dPLUS%d);%n", prefix,
+                fld.getName(), fld.pad(w),
+                fld.getOffset() - bias, fld.getLength(),
+                fld.getOffset(), fld.getLength()
+            );
+            return;
+        }
+
         switch (fld.getCheck()) {
             case None:
                 break;
@@ -76,6 +86,10 @@ public class JavaFieldCustom extends ActionField<FieldCustom> implements JavaFie
     }
 
     private void chkSetter(@NotNull FieldCustom fld) {
+        if (fld.getRegex() != null) {
+            printf("        testRegex(s, PATTERN_AT%sPLUS%d);%n", pos.apply(fld.getOffset() + 1), fld.getLength());
+            return;
+        }
         switch (fld.getCheck()) {
             case None:
                 break;
@@ -98,6 +112,10 @@ public class JavaFieldCustom extends ActionField<FieldCustom> implements JavaFie
     }
 
     private void chkGetter(@NotNull FieldCustom fld) {
+        if (fld.getRegex() != null) {
+            printf("        testRegex(%1$s, %2$d, PATTERN_AT%3$sPLUS%2$d);%n", pos.apply(fld.getOffset()), fld.getLength(), pos.apply(fld.getOffset() + 1));
+            return;
+        }
         switch (fld.getCheck()) {
             case None:
                 break;
@@ -119,17 +137,13 @@ public class JavaFieldCustom extends ActionField<FieldCustom> implements JavaFie
         }
     }
 
-    private void docSetter(@NotNull FieldCustom fld) {
-        printf("    /**%n");
-        printf("     * Use @%d+%d%n", fld.getOffset(), fld.getLength());
-        printf("     * @param s string value%n");
-        printf("     */%n");
+    @Override
+    public void prepare(@NotNull FieldCustom fld, int bias) {
+        val regex = fld.getRegex();
+        if (regex != null) {
+            printf("    private static final java.util.regex.Pattern PATTERN_AT%dPLUS%d = java.util.regex.Pattern.compile(\"%s\");%n",
+                fld.getOffset(), fld.getLength(), StringEscapeUtils.escapeJava(regex));
+        }
     }
 
-    private void docGetter(@NotNull FieldCustom fld) {
-        printf("    /**%n");
-        printf("     * Use @%d+%d%n", fld.getOffset(), fld.getLength());
-        printf("     * @return string value%n");
-        printf("     */%n");
-    }
 }
