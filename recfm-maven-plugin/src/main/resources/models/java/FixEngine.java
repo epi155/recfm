@@ -103,10 +103,11 @@ abstract class FixEngine {
         if (Arrays.binarySearch(domain, value) < 0)
             throw new FixError.NotDomainException(value);
     }
+
     protected static void testRegex(String value, Pattern pattern) {
         if (value == null) return;
         Matcher matcher = pattern.matcher(value);
-        if (! matcher.matches())
+        if (!matcher.matches())
             throw new FixError.NotMatchesException(value);
     }
 
@@ -117,10 +118,10 @@ abstract class FixEngine {
     }
 
     protected static String normalize(String s,
-                               OverflowAction overflowAction,
-                               UnderflowAction underflowAction,
-                               char pad, char init,
-                               int offset, int count) {
+                                      OverflowAction overflowAction,
+                                      UnderflowAction underflowAction,
+                                      char pad, char init,
+                                      int offset, int count) {
         if (s == null) {
             if (underflowAction == UnderflowAction.Error)
                 throw new FixError.FieldUnderFlowException(FIELD_AT + offset + EXPECTED + count + CHARS_FOUND + " null");
@@ -507,7 +508,7 @@ abstract class FixEngine {
     }
 
     protected boolean checkArray(String name, int offset, int count, FieldValidateHandler handler, String[] domain) {
-        if (Arrays.binarySearch(domain, getAbc(offset, count)) <0) {
+        if (Arrays.binarySearch(domain, getAbc(offset, count)) < 0) {
             handler.error(name, offset, count, offset, ValidateError.NotDomain);
             return true;
         }
@@ -516,7 +517,7 @@ abstract class FixEngine {
 
     protected boolean checkRegex(String name, int offset, int count, FieldValidateHandler handler, Pattern pattern) {
         Matcher matcher = pattern.matcher(getAbc(offset, count));
-        if (! matcher.matches()) {
+        if (!matcher.matches()) {
             handler.error(name, offset, count, offset, ValidateError.Mismatch);
             return true;
         }
@@ -532,7 +533,7 @@ abstract class FixEngine {
     protected void testRegex(int offset, int count, Pattern pattern) {
         String value = getAbc(offset, count);
         Matcher matcher = pattern.matcher(value);
-        if (! matcher.matches())
+        if (!matcher.matches())
             throw new FixError.NotMatchesException(offset + 1, value);
     }
 }

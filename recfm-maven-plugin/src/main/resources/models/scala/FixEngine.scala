@@ -581,7 +581,7 @@ object FixEngine {
       if (underflowAction eq UnderflowAction.Error) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + " null")
       fill(count, init)
     }
-    else if (s.length == count) return s
+    else if (s.length == count) s
     else if (s.length < count) underflowAction match {
       case UnderflowAction.PadR =>
         rpad(s, count, pad)
