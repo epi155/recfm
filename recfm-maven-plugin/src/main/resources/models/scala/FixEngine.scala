@@ -1,6 +1,7 @@
 import java.nio.CharBuffer
 import java.text.NumberFormat
 import java.util
+import scala.util.matching.Regex
 
 abstract class FixEngine(
                           length: Int,
@@ -112,51 +113,37 @@ abstract class FixEngine(
     }
   }
 
-  protected def checkDigitBlank(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
-    var c = rawData(offset)
-    if (c == ' ') {
-      var u = offset + 1
-      var v = 1
-      while ( {
-        v < count
-      }) {
-        if (rawData(u) != ' ') {
-          handler.error(name, offset, count, u + 1, ValidateError.NotNumber)
-          return true
-        }
+  private def padToRight(s: String, offset: Int, count: Int, c: Char): Unit = {
+    var u = 0
+    var v = offset
 
-        u += 1
-        v += 1
-      }
-    }
-    else if ('0' <= c && c <= '9') {
-      var u = offset + 1
-      var v = 1
-      while ( {
-        v < count
-      }) {
-        c = rawData(u)
-        if (!('0' <= c && c <= '9')) {
-          handler.error(name, offset, count, u + 1, ValidateError.NotNumber)
-          return true
-        }
+    while ( {
+      u < s.length
+    }) {
+      rawData(v) = s.charAt(u)
 
-        u += 1
-        v += 1
-      }
+      u += 1
+      v += 1
     }
-    else return true
-    false
+
+    while ( {
+      u < count
+    }) {
+      rawData(v) = c
+
+      u += 1
+      v += 1
+    }
   }
 
-  protected def testAscii(offset: Int, count: Int): Unit = {
-    var u = offset
-    var v = 0
+  private def setAsIs(s: String, offset: Int): Unit = {
+    var u = 0
+    var v = offset
     while ( {
-      v < count
+      u < s.length
     }) {
-      val c = rawData(u)
-      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
+      rawData(v) = s.charAt(u)
+
       u += 1
       v += 1
     }
@@ -245,10 +232,41 @@ abstract class FixEngine(
     false
   }
 
-  protected def fill(offset: Int, count: Int, s: String): Unit = {
-    if (s.length == count) setAsIs(s, offset)
-    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
-    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+  protected def checkDigitBlank(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
+    var c = rawData(offset)
+    if (c == ' ') {
+      var u = offset + 1
+      var v = 1
+      while ( {
+        v < count
+      }) {
+        if (rawData(u) != ' ') {
+          handler.error(name, offset, count, u + 1, ValidateError.NotNumber)
+          return true
+        }
+
+        u += 1
+        v += 1
+      }
+    }
+    else if ('0' <= c && c <= '9') {
+      var u = offset + 1
+      var v = 1
+      while ( {
+        v < count
+      }) {
+        c = rawData(u)
+        if (!('0' <= c && c <= '9')) {
+          handler.error(name, offset, count, u + 1, ValidateError.NotNumber)
+          return true
+        }
+
+        u += 1
+        v += 1
+      }
+    }
+    else return true
+    false
   }
 
   protected def checkAscii(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
@@ -269,14 +287,14 @@ abstract class FixEngine(
     false
   }
 
-  private def setAsIs(s: String, offset: Int): Unit = {
-    var u = 0
-    var v = offset
+  protected def testAscii(offset: Int, count: Int): Unit = {
+    var u = offset
+    var v = 0
     while ( {
-      u < s.length
+      v < count
     }) {
-      rawData(v) = s.charAt(u)
-
+      val c = rawData(u)
+      if (!(32 <= c && c <= 127)) throw new FixError.NotAsciiException(c, u)
       u += 1
       v += 1
     }
@@ -341,12 +359,10 @@ abstract class FixEngine(
     false
   }
 
-  protected def checkRegex(name: String, offset: Int, count: Int, handler: FieldValidateHandler, regex: Regex): Boolean = {
-    if (!regex.matches(abc(offset, count))) {
-      handler.error(name, offset, count, offset, ValidateError.NotDomain)
-      return true
-    }
-    false
+  protected def fill(offset: Int, count: Int, s: String): Unit = {
+    if (s.length == count) setAsIs(s, offset)
+    else if (s.length < count) throw new FixError.FieldUnderFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
+    else throw new FixError.FieldOverFlowException(FixEngine.FIELD_AT + offset + FixEngine.EXPECTED + count + FixEngine.CHARS_FOUND + s.length)
   }
 
   protected def checkLatin(name: String, offset: Int, count: Int, handler: FieldValidateHandler): Boolean = {
@@ -406,9 +422,12 @@ abstract class FixEngine(
     false
   }
 
-  protected def testRegex(offset: Int, count: Int, regex: Regex): Unit = {
-    val value = abc(offset, count)
-    if (!regex.matches(value)) throw new FixError.NotMatchesException(value)
+  protected def checkRegex(name: String, offset: Int, count: Int, handler: FieldValidateHandler, regex: Regex): Boolean = {
+    if (!regex.matches(abc(offset, count))) {
+      handler.error(name, offset, count, offset, ValidateError.NotDomain)
+      return true
+    }
+    false
   }
 
   protected def testArray(offset: Int, count: Int, domain: Array[String]): Unit = {
@@ -416,8 +435,8 @@ abstract class FixEngine(
     if (!domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
   }
 
-  protected def testRegex(value: String, regex: Regex): Unit = {
-    if (value == null) return
+  protected def testRegex(offset: Int, count: Int, regex: Regex): Unit = {
+    val value = abc(offset, count)
     if (!regex.matches(value)) throw new FixError.NotMatchesException(value)
   }
 
@@ -512,27 +531,9 @@ abstract class FixEngine(
     if (!domain.search(value).isInstanceOf[scala.collection.Searching.Found]) throw new FixError.NotDomainException(value)
   }
 
-  private def padToRight(s: String, offset: Int, count: Int, c: Char): Unit = {
-    var u = 0
-    var v = offset
-
-    while ( {
-      u < s.length
-    }) {
-      rawData(v) = s.charAt(u)
-
-      u += 1
-      v += 1
-    }
-
-    while ( {
-      u < count
-    }) {
-      rawData(v) = c
-
-      u += 1
-      v += 1
-    }
+  protected def testRegex(value: String, regex: Regex): Unit = {
+    if (value == null) return
+    if (!regex.matches(value)) throw new FixError.NotMatchesException(value)
   }
 
   protected def testDigit(value: String): Unit = {
