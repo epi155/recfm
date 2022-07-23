@@ -49,7 +49,7 @@ Configuration plugin example:
 <plugin>
     <groupId>io.github.epi155</groupId>
     <artifactId>recfm-maven-plugin</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.3</version>
     <configuration>
         <settings>
             <setting>recfm-foo.yaml</setting>
@@ -94,37 +94,26 @@ package org.example.sys.file;
 
 public class FooBody extends FixRecord {
     public static final int LRECL = 543;
-
-    public FooBody() { ...}    // empty constructor
-
-    public static FooBody decode(String s) { ...}    // de-serialize
-
-    public String encode() { ...}
-
-    ;    // serialize
+    public FooBody() {...}    // empty constructor
+    public static FooBody decode(String s) {...}    // de-serialize
+    public String encode() {...}   // serialize
     ...
+    public String getIbrKey()  ...}
+    public void setIbrKey(String s) {...}
 
-    public String getIbrKey() { ...}
+    public String getIbrPrg() {...}
+    public void setIbrPrg(String s) {...}
 
-    public void setIbrKey(String s) { ...}
+    public String getRecPrg() {...}
+    public void setRecPrg(String s) {...}
 
-    public String getIbrPrg() { ...}
+    public String getFuncData() {...}
+    public void setFuncData(String s) {...}
 
-    public void setIbrPrg(String s) { ...}
+    public String getReseData() {...}
+    public void setReseData(String s) {...}
 
-    public String getRecPrg() { ...}
-
-    public void setRecPrg(String s) { ...}
-
-    public String getFuncData() { ...}
-
-    public void setFuncData(String s) { ...}
-
-    public String getReseData() { ...}
-
-    public void setReseData(String s) { ...}
-
-    public String toString() { ...}    // human readable dump
+    public String toString() {...}    // human readable dump
 }
 ~~~
 
@@ -191,7 +180,7 @@ After that we can define the single classes
 
 ~~~yml
 classes:
-  - { ... }
+  - {...}
 ~~~
 
 ### <a name="42">4.2. Class level</a>
@@ -205,7 +194,7 @@ classes:
     onOverflow: Trunc
     onUnderflow: Pad
     fields:
-      - { ... }
+      - {...}
 ~~~
 
 * `classes[].name` is the name of the class.
