@@ -9,6 +9,7 @@
 
     <artifactId>recfm-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
+    <url>https://github.com/epi155/recfm/tree/main/recfm-maven-plugin</url>
 
     <properties>
         <project.group>${groupId}</project.group>
